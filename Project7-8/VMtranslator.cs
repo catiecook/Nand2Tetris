@@ -82,29 +82,75 @@ namespace VMtranslator
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~MAIN~~~~~~~
-    public static void Main(string[] args)
-    {
-            Console.WriteLine("Enter in the .vm file/directory you wish to convert to .asm : ");
-            string vmFileName = Console.ReadLine();
+        public static void Main(string[] args)
+        {
+             Console.WriteLine("Enter in the .vm file/directory you wish to convert to .asm : ");
+             string vmFileDirName = Console.ReadLine();
 
-            string asmFileNameString = new string(asmFileName);
-            string logFileNameString = new string(asmFileName);
-            logFileNameString = string.Concat(asmFileNameString, "log"); //making a .log to fill with same as what we Console.WriteLine();
-            asmFileNameString = string.Concat(asmFileNameString, "asm"); //.asm is now .hack
-            System.IO.StreamWriter fileOutput = new System.IO.StreamWriter(asmFileNameString);
-            System.IO.StreamWriter logOutput = new System.IO.StreamWriter(logFileNameString);
+             if (File.Exists(vmFileDirName))
+             {
+                  ProcessFile(vmFileDirName);
+             }
+             else if (Directory.Exists(vmFileDirName))
+             {
+                  int lastSlash = vmFileDirName.LastIndexOf("\\", 0);
+                  string dirName = vmFileDirName.Substring(lastSlash + 1);
+                  progOutFile = new StreamWriter(dirName + ".asm");
+                  // Write the initialization code
+                  string[] fileEntries = Directory.GetFiles(vmFileDirName, "*.vm", SearchOption.TopDirectoryOnly);
+                  foreach (string fileName in fileEntries)
+                  {
+                       // Get rid of the ".vm"; we don't look for "vm, we just delete the last two characters
+                       int dirSlash = fileName.IndexOf("\\", 0);
+                       if ((dirSlash < 0)) // no leading dir name
+                       {
+                            shortFileName = fileName.Substring(0, fileName.Length - 2);
+                       }
+                       else
+                       {
+                            shortFileName = fileName.Substring((dirSlash + 1), fileName.Length - dirSlash - 4);
+                       }
 
-            while ((line = file.ReadLine()) != null)
-            { //line by line each loop through
-                program.parser(line, fileOutput, logOutput);
-            }
+                       ProcessFile(fileName);
+                  }
+                  // close the asm output file
+                  progOutFile.Close();
+             }
 
-            Console.ReadLine();
 
-            file.Close();
-            fileOutput.Close();
-            logOutput.Close(); //this is a text file to store messages and any error messages 
         }//end of main
+
+        static void ProcessFile(string file)
+        {
+             System.IO.StreamReader newFile = new System.IO.StreamReader(file);
+             Program program = new Program();
+             string line;
+
+             //change .asm to .hack
+             char[] asmFileName = new char[file.Length - 2];
+             for (int i = 0; i < file.Length - 2; i++)
+             {
+                  asmFileName[i] = file[i];
+             }
+             Console.WriteLine("Processing file: {0}", file);
+             string asmFileNameString = new string(asmFileName);
+             string logFileNameString = new string(asmFileName);
+             logFileNameString = string.Concat(asmFileNameString, "log"); //making a .log to fill with same as what we Console.WriteLine();
+             asmFileNameString = string.Concat(asmFileNameString, "asm"); //.asm is now .hack
+             System.IO.StreamWriter fileOutput = new System.IO.StreamWriter(asmFileNameString);
+             System.IO.StreamWriter logOutput = new System.IO.StreamWriter(logFileNameString);
+
+             while ((line = newFile.ReadLine()) != null)
+             { //line by line each loop through
+                  program.parser(line, fileOutput, logOutput);
+             }
+             Console.ReadLine();
+
+             newFile.Close();
+             fileOutput.Close();
+             logOutput.Close(); //this is a text file to store messages and any error messages 
+        }//end of ProcessFile
+
     }//end of class Program
 }//end of namespace
 
