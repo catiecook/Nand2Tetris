@@ -115,6 +115,45 @@ namespace Project7_8
             {
                 return "@SP\nA=M-1\nM=!M\n";
             }
+
+            public static string push(string loc,string arg)
+            {
+                /*CONSTANT: "@" + arg + "\n" + "D=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n"; */
+
+                switch(loc)
+                {
+                case "argument":
+                    //TODO
+                    break;
+                case "local":
+                    //TODO
+                    break;
+                case "static":
+                    //TODO
+                    break;
+                case "constant":
+                    //TODO
+                    break;
+                case "this":
+                    //TODO
+                    break;
+                case "that":
+                    //TODO
+                    break;
+                case "pointer":
+                    //TODO
+                    break;
+                case "temp":
+                    //TODO
+                    break;
+                default: throw new ArgumentException("Invalid memory segment [" + loc + "]");
+                }
+            }
+
+            public static string pop(string loc,string arg)
+            {
+                //TODO
+            }
         }
 
 
@@ -127,7 +166,7 @@ namespace Project7_8
 
                     var subs = line.Split(' ');
 
-                    string command = subs[0];
+                    string command = subs[0].ToLower();
                 
                     switch(command)
                     {
@@ -140,6 +179,8 @@ namespace Project7_8
                     case "and": fileOutput.Write(Parse.and()); fileOutput.WriteLine(); break;
                     case "or": fileOutput.Write(Parse.or()); fileOutput.WriteLine(); break;
                     case "not": fileOutput.WriteLine(Parse.not()); fileOutput.WriteLine(); break;
+                    case "push": fileOutput.WriteLine(Parse.push(subs[1],subs[2])); fileOutput.WriteLine(); break;
+                    case "pop": fileOutput.WriteLine(Parse.pop(subs[1],subs[2])); fileOutput.WriteLine(); break;
                     default: throw new NotImplementedException("Operator \"" + command + "\" not found.");
                     }
 
