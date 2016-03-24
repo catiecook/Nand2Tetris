@@ -58,101 +58,70 @@ using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using System.IO;
 
-namespace VMtranslator
+namespace Project7_8
 {
     class Program
     {
-        //declaration of global variables
-        int ARITHMETIC = 0;
-        int PUSH = 1;
-        int POP = 2;
-        int LABEL = 3;
-        int GOTO = 4;
-        int IF = 5;
-        int FUNCTION = 6;
-        int RETURN = 7;
-        int CALL = 8;
-        bool keepGoing;
-        int argType;
-        string argument1;
-        int argument2;
-        private int arthJumpFlag = 0;
-
-        
-
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~MAIN~~~~~~~
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~MAIN~~~~~~~
         public static void Main(string[] args)
         {
-             Console.WriteLine("Enter in the .vm file/directory you wish to convert to .asm : ");
-             string vmFileDirName = Console.ReadLine();
+            Console.WriteLine("Enter in the .vm file/directory you wish to convert to .asm : ");
+            string vmFileDirName = Console.ReadLine();
 
-             if (File.Exists(vmFileDirName))
-             {
-                  ProcessFile(vmFileDirName);
-             }
-             else if (Directory.Exists(vmFileDirName))
-             {
-                  int lastSlash = vmFileDirName.LastIndexOf("\\", 0);
-                  string dirName = vmFileDirName.Substring(lastSlash + 1);
-                  progOutFile = new StreamWriter(dirName + ".asm");
-                  // Write the initialization code
-                  string[] fileEntries = Directory.GetFiles(vmFileDirName, "*.vm", SearchOption.TopDirectoryOnly);
-                  foreach (string fileName in fileEntries)
-                  {
-                       // Get rid of the ".vm"; we don't look for "vm, we just delete the last two characters
-                       int dirSlash = fileName.IndexOf("\\", 0);
-                       if ((dirSlash < 0)) // no leading dir name
-                       {
-                            shortFileName = fileName.Substring(0, fileName.Length - 2);
-                       }
-                       else
-                       {
-                            shortFileName = fileName.Substring((dirSlash + 1), fileName.Length - dirSlash - 4);
-                       }
+            if(File.Exists(vmFileDirName)) //Single file, just process.
+            {
+                ProcessFile(vmFileDirName);
+            }
+            else if(Directory.Exists(vmFileDirName)) //Directory, process each file in it.
+            {
+                int lastSlash = vmFileDirName.LastIndexOf("\\",0);
+                string dirName = vmFileDirName.Substring(lastSlash + 1);
 
-                       ProcessFile(fileName);
-                  }
-                  // close the asm output file
-                  progOutFile.Close();
-             }
+                //Using a single output and single log file for all the files in the directory.
+                using(var output = new StreamWriter(dirName + ".asm"))
+                using(var log = new StreamWriter(dirName + ".log")) {
 
+                    string[] fileEntries = Directory.GetFiles(vmFileDirName,"*.vm",SearchOption.TopDirectoryOnly);
+                    foreach(string fileName in fileEntries)
+                        ProcessFile(fileName);
+                }
+            }
 
-        }//end of main
+            Console.WriteLine("Translation complete. . .");
+            Console.ReadKey();
+        }
 
-        static void ProcessFile(string file)
+        static void ProcessFile(string file,StreamWriter output = null,StreamWriter log = null)
         {
-             System.IO.StreamReader newFile = new System.IO.StreamReader(file);
-             Program program = new Program();
-             string line;
+            //change .asm to .hack
+            char[] asmFileName = new char[file.Length - 2];
+            for(int i = 0; i < file.Length - 2; i++) {
+                asmFileName[i] = file[i];
+            }
+            Console.WriteLine("Processing file: {0}",file);
+            string asmFileNameString = new string(asmFileName);
+            string logFileNameString = new string(asmFileName);
+            logFileNameString = string.Concat(asmFileNameString,"log"); //making a .log to fill with same as what we Console.WriteLine();
+            asmFileNameString = string.Concat(asmFileNameString,"asm"); //.asm is now .hack
 
-             //change .asm to .hack
-             char[] asmFileName = new char[file.Length - 2];
-             for (int i = 0; i < file.Length - 2; i++)
-             {
-                  asmFileName[i] = file[i];
-             }
-             Console.WriteLine("Processing file: {0}", file);
-             string asmFileNameString = new string(asmFileName);
-             string logFileNameString = new string(asmFileName);
-             logFileNameString = string.Concat(asmFileNameString, "log"); //making a .log to fill with same as what we Console.WriteLine();
-             asmFileNameString = string.Concat(asmFileNameString, "asm"); //.asm is now .hack
-             System.IO.StreamWriter fileOutput = new System.IO.StreamWriter(asmFileNameString);
-             System.IO.StreamWriter logOutput = new System.IO.StreamWriter(logFileNameString);
+            using(var input = new StreamReader(file)) {
 
-             while ((line = newFile.ReadLine()) != null)
-             { //line by line each loop through
-                  program.parser(line, fileOutput, logOutput);
-             }
-             Console.ReadLine();
+                    //Output streams were passed to the function
+                    //(that means this is a file in a directory, and all the files use the same output)
+                    if(output != null && log != null) Parser.parse(input,output,log);
 
-             newFile.Close();
-             fileOutput.Close();
-             logOutput.Close(); //this is a text file to store messages and any error messages 
-        }//end of ProcessFile
+                    //Output streams were not passed
+                    //(This is a single file beng parsed, generate the output files now)
+                    else
+                        using(var noutput = new StreamWriter(asmFileNameString))
+                            using(var nlog = new StreamWriter(logFileNameString))
+                                Parser.parse(input,noutput,nlog);
+            }
+        }
 
-    }//end of class Program
-}//end of namespace
+    }
+}
 
 
 
