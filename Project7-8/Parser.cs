@@ -160,6 +160,36 @@ namespace Project7_8
                 default: throw new ArgumentException("Invalid memory segment [" + loc + "]");
                 }
             }
+
+            public static string label(string name)
+            {
+                //TODO
+            }
+
+            public static string goTo(string name)
+            {
+                //TODO
+            }
+
+            public static string ifGoTo(string name)
+            {
+                //TODO
+            }
+
+            public static string function(string name,string nArgs)
+            {
+                //TODO
+            }
+
+            public static string call(string name)
+            {
+                //TODO
+            }
+
+            public static string fReturn()
+            {
+                //TODO
+            }
         }
         
         public static void parse(StreamReader input,StreamWriter output,StreamWriter log)
@@ -204,6 +234,12 @@ namespace Project7_8
                     case "not": write(Parse.not()); break;
                     case "push": write(Parse.push(subs[1],subs[2])); break;
                     case "pop": write(Parse.pop(subs[1],subs[2])); break;
+                    case "label": write(Parse.label(subs[1])); break;
+                    case "goto": write(Parse.goTo(subs[1])); break;
+                    case "if-goto": write(Parse.ifGoTo(subs[1])); break;
+                    case "function": write(Parse.function(subs[1],subs[2])); break;
+                    case "call": write(Parse.call(subs[1])); break;
+                    case "return": write(Parse.fReturn()); break;
                     default: throw new NotImplementedException("Operator \"" + command + "\" not found.");
                     }
 
