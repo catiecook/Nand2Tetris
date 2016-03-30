@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 
+
+
 namespace Project7_8
 {
     static class Parser
@@ -179,27 +181,73 @@ namespace Project7_8
 
             public static string ifGoTo(string name)
             {
-                //TODO
+                //TODO -- tegan
+                string ifGotoLine = "@SP\nM=M-1\n@SP\nA=M\n" + name + "=M";
+                return ifGotoLine;
             }
 
             public static string function(string name, string nArgs)
             {
                 //TODO
+                string functionLine = "(" + name + ")\n"; //write label
+                foreach (int element in nArgs)
+                {
+                    functionLine = functionLine + "@0\n"
+                                                + "D=A\n"
+                                                + "@SP\n"
+                                                + "A=M\n"
+                                                + "M=D\n";
+                }
+                return functionLine;
             }
 
             public static string call(string name)
             {
                 //TODO
+                return "call function should be here\n";
             }
 
             public static string fReturn()
             {
-                //TODO
+                //TODO -- tegan
+                string fReturnLine = "@LCL\n"
+                                    + "D+M\n"
+                                    + "@R6\n"
+                                    + "M=D\n"
+                                    + "@5\n"
+                                    + "A=D-A\n"
+                                    + "D=M\n"
+                                    + "@R7\n"
+                                    + "M=D\n" //hold return address in register temporarily
+
+                                    + "@ARG\n" //pop arg 0
+                                    + "D=M\n"
+                                    + "@0\n"
+                                    + "D=D+A\n"
+                                    + "@R5\n"
+                                    + "M=D\n"
+                                    + "@SP\n"
+                                    + "A=M-1\n"
+                                    + "D=M\n"
+                                    + "@R5\n"
+                                    + "A=M\n"
+                                    + "M=D\n"
+                                    + "@SP\n"
+                                    + "M=M-1\n"
+
+                                    + "@ARG\nD=M\n@1\nD=D+A\n@SP\nM=D\n"
+                                    + "@R6\nD=M\n@1\nA=D-A\nD=M\n@THAT\nM=D\n"
+                                    + "@R6\nD=M\n@2\nA=D-A\nD=M\n@THIS\nM=D\n"
+                                    + "@R6\nD=M\n@3\nA=D-A\nD=M\n@ARG\nM=D\n"
+                                    + "@R6\nD=M\n@4\nA=D-A\nD=M\n@LCL\nM=D\n"
+                                    + "@R7\nA=M\n0;JMP\n";
+                return fReturnLine;
             }
         }
 
         public static void parse(StreamReader input, StreamWriter output, StreamWriter log)
         {
+
             Action<string, StreamWriter> writeTo = (s, dest) =>
             {
                 dest.Write(s);
