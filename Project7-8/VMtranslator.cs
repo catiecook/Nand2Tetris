@@ -87,6 +87,10 @@ namespace Project7_8
                         ProcessFile(fileName);
                 }
             }
+            else
+            {
+                Console.WriteLine("ERROR : no file/directory was found by that name...");
+            }
 
             Console.WriteLine("Translation complete. . .");
             Console.ReadKey();
