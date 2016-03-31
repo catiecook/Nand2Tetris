@@ -1,54 +1,10 @@
 // VMtranslator 
-// Takes in VM files, translates them 
+// Takes in VM files, translates them into Hack assembly code
 // Translates the push and pop arguments
 
-//~~~~~~~~~~~~~ PARSER MODULE ~~~~~~~~~~~~~~
-
-//Call Constructor
-	//open .asm file
-		//creat array of strings with fule data
-
-	//error message if no file present that works
-
-//Call Parseer function
-		//remove all white space and comments 
-		
-//Bool moreCommands() that constantly checks if there are more commands present
-	//while(moreCommands();
-		//Read next commmand from input file and make current command
-		//untill the boolean function moreCommands() is false
-		//meaning there are no more commands
-
-		//While there ARE still commands
-			//call commandType() to return the type of command encountered. 
-					//examples: C_ARITHEMETIC, C_PUSH, C_POP, C_LABEL, C_GOTO, C_IF, C_FUNCTION, C_RETURN, C_CALL
-			//call string arg1()
-					//return the first argument of current command
-					//not called if the current command is C_RETURN because that means its the end 
-			// call int arg2()
-					//returns second argument of the current command. 
-					//Called only if current command is C_PUSH, C_POP, C_FUNCTION, C_CALL 
-
-//~~~~~~~~~~~~~ CODEWRITER ~~~~~~~~~~~~~~
-
-//Call constructor (ostream out)
-		//opens output file/stream and prepares to write to it 	
-	//setFileName(string fileName) 
-			//iterate through data array?
-			//Call writeArithmetic (strong command) to write assembly code translated 
-			//from given arithemetic commmand
-			//Call WritePushPop(pop/push command, string segment, int index)
-				//writes assembly code translated from current command, either C_PUSH or C_POP
-		//When all lines have been read out
-			//close file
-
-
-//TEGAN STRALEY & CATIE COOK
+//TEGAN STRALEY & CATIE COOK & IAN WIGGINS & LUCIA GUATNEY
 //FILE: VMtranslator.cs
-//PROJECT: created for project 7 of NAND2Tetris course
-
-//File converts .vm input file to hack assmebly code. The resulting code
-//in displayed out to user and also written to a corresponding output file. 
+//PROJECT: created for project 7 & 8 of NAND2Tetris course
 
 using System;
 using System.Collections.Generic;
@@ -87,9 +43,9 @@ namespace Project7_8
                         ProcessFile(fileName);
                 }
             }
-            else
-            {
-                Console.WriteLine("ERROR : no file/directory was found by that name...");
+
+            else{
+        	Console.WriteLine("ERROR : no file/directory was found by that name...");
             }
 
             Console.WriteLine("Translation complete. . .");
