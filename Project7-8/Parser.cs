@@ -15,6 +15,8 @@ namespace Project7_8
         {
             private static int jmpIndex = 0;
 
+            private static int returnIndex = 0;
+
             public static string jmp(string type)
             {
                 string ret =
@@ -30,6 +32,13 @@ namespace Project7_8
                         jmpIndex +
                         ")\n";
                 ++jmpIndex;
+                return ret;
+            }
+
+            public static string genReturn()
+            {
+                string ret = "return_" + returnIndex.ToString();
+                ++returnIndex;
                 return ret;
             }
 
@@ -201,10 +210,67 @@ namespace Project7_8
                 return functionLine;
             }
 
-            public static string call(string name)
+            public static string call(string nam, string nArgs)
             {
-                //TODO
-                return "call function should be here\n";
+                Int32.Parse(nArgs);
+                StringBuilder builder = new StringBuilder();
+
+                string retAddr = Constants.genReturn();
+
+                //Function address to R15
+                builder.AppendLine("@" + nam);
+                builder.AppendLine("D=A");
+                builder.AppendLine("@R14");
+                builder.AppendLine("M=D");
+
+                //Number args into R14
+                builder.AppendLine("@" + nArgs);
+                builder.AppendLine("D=A");
+                builder.AppendLine("@R15");
+                builder.AppendLine("M=D");
+
+                //Push return address onto stack
+                builder.AppendLine("@" + retAddr);
+                builder.AppendLine("D=A");
+                builder.AppendLine("@SP");
+                builder.AppendLine("M=D");
+
+                //Save local, arg, this, and that
+                Action<string> saveState = s => {
+
+                    builder.AppendLine("@" + s);
+                    builder.AppendLine("D=A");
+                    builder.AppendLine("@SP");
+                    builder.AppendLine("M=D");
+                };
+
+                saveState("LCL");
+                saveState("ARG");
+                saveState("THIS");
+                saveState("THAT");
+
+                //Reposition local, M[LCL] = M[SP], M[SP] = D
+                builder.AppendLine("@SP");
+                builder.AppendLine("D=M");
+                builder.AppendLine("@LCL");
+                builder.AppendLine("M=D");
+
+                //Reposition arg, M[SP] is in D, num args in R14
+                builder.AppendLine("@R14");
+                builder.AppendLine("D=D-M");
+                builder.AppendLine("@5");//5 because thats how much space we took to save state
+                builder.AppendLine("D=D-A");
+                builder.AppendLine("@ARG");
+                builder.AppendLine("M=D");
+
+                //Put result in args
+                builder.AppendLine("@R15");
+                builder.AppendLine("A=M");
+                builder.AppendLine("0;JMP");
+
+                builder.AppendLine("(" + retAddr + ")");
+
+                return builder.ToString();
             }
 
             public static string fReturn()
@@ -293,7 +359,7 @@ namespace Project7_8
                         case "goto": write(Parse.goTo(subs[1])); break;
                         case "if-goto": write(Parse.ifGoTo(subs[1])); break;
                         case "function": write(Parse.function(subs[1], subs[2])); break;
-                        case "call": write(Parse.call(subs[1])); break;
+                        case "call": write(Parse.call(subs[1],subs[2])); break;
                         case "return": write(Parse.fReturn()); break;
                         default: throw new NotImplementedException("Operator \"" + command + "\" not found.");
                     }
