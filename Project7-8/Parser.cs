@@ -199,8 +199,8 @@ namespace Project7_8
 
             public static string ifGoTo(string name)
             {
-                //TODO -- tegan
-                string ifGotoLine = "@SP\nM=M-1\n@SP\nA=M\n" + name + "=M";
+                //TODO -- tegan ERROR
+                string ifGotoLine = "@SP\nAM=M-1\nD=M\nA=A-1\n@" + name + "\nD;JNE\n";
                 return ifGotoLine;
             }
 
@@ -297,9 +297,6 @@ namespace Project7_8
                                     + "D=M\n"
                                     + "@R7\n" //R7 return value
                                     + "M=D\n" //hold return address in register temporarily
-
-
-
 
                                     + generatePop("ARG")
 
