@@ -186,7 +186,7 @@ namespace Project7_8
             public static string label(string name)
             {
                 //TODO --- tegan
-                string labelLine = "(" + name + ")";
+                string labelLine = "(" + name + ")\n";
                 return labelLine;
             }
 
@@ -206,15 +206,19 @@ namespace Project7_8
 
             public static string function(string name, string nArgs)
             {
-                //TODO
+                //TODO -- tegan
+                int numArgs = Int32.Parse(nArgs);
                 string functionLine = "(" + name + ")\n"; //write label
-                foreach (int element in nArgs)
+                for (int i = 0; i < numArgs; i++)
                 {
                     functionLine = functionLine + "@0\n"
                                                 + "D=A\n"
                                                 + "@SP\n"
                                                 + "A=M\n"
-                                                + "M=D\n";
+                                                + "M=D\n"
+                                                + "@SP\n"
+                                                + "M=M+1\n";
+
                 }
                 return functionLine;
             }
@@ -296,31 +300,17 @@ namespace Project7_8
                                     + "@R7\n" //R7 return value
                                     + "M=D\n" //hold return address in register temporarily
 
-                                    + generatePop("ARG")
+                                   + generatePop("ARG")
 
-                                    /*
-                                    + "@ARG\n" //pop arg 0         
-                                    + "D=M\n"  // ARG is in D
-                                    + "@0\n"
-                                    + "D=D+A\n"
-                                    + "@R5\n"
-                                    + "M=D\n"
-                                    + "@SP\n"
-                                    + "A=M-1\n"
+                                    + "@ARG\n"
                                     + "D=M\n"
-                                    + "@R5\n"
-                                    + "A=M\n"
-                                    + "M=D\n"
-                                    */
-
                                     + "@SP\n"
-                                    + "M=M-1\n"
-                                    + "@ARG\nD=M\n@1\nD=D+A\n@SP\nM=D\n"
+                                    + "M=D+1\n"
 
-                                    + "@R6\nD=M\n@1\nA=D-A\nD=M\n@THAT\nM=D\n" //restore THAT to the caller
-                                    + "@R6\nD=M\n@2\nA=D-A\nD=M\n@THIS\nM=D\n" //restore THIS to the caller
-                                    + "@R6\nD=M\n@3\nA=D-A\nD=M\n@ARG\nM=D\n"  //restore ARG to the caller
-                                    + "@R6\nD=M\n@4\nA=D-A\nD=M\n@LCL\nM=D\n" //restore LCL to the caller
+                                    + "@R6\nD=M-1\nAM=D\nD=M\n@THAT\nM=D\n" //restore THAT to the caller
+                                    + "@R6\nD=M-1\nAM=D\nD=M\n@THIS\nM=D\n" //restore THIS to the caller
+                                    + "@R6\nD=M-1\nAM=D\nD=M\n@ARG\nM=D\n"  //restore ARG to the caller
+                                    + "@R6\nD=M-1\nAM=D\nD=M\n@LCL\nM=D\n" //restore LCL to the caller
                                     + "@R7\nA=M\n0;JMP\n";  // jump to the return value (held in R7)
                 return fReturnLine;
 
