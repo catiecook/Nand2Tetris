@@ -193,14 +193,14 @@ namespace Project7_8
             public static string goTo(string name)
             {
                 //TODO -- tegan
-                string gotoLine = "@" + name + "\n" + "0:JMP\n";
+                string gotoLine = "@" + name + "\n" + "0;JMP\n";
                 return gotoLine;
             }
 
             public static string ifGoTo(string name)
             {
                 //TODO -- tegan
-                string ifGotoLine = "@SP\nM=M-1\n@SP\nA=M\n" + name + "=M";
+                string ifGotoLine = "@SP\nAM=M-1\nD=M\nA=A-1\n@" + name + "\nD;JNE\n";
                 return ifGotoLine;
             }
 
@@ -215,7 +215,6 @@ namespace Project7_8
                                                 + "@SP\n"
                                                 + "A=M\n"
                                                 + "M=D\n";
-
                 }
                 return functionLine;
             }
@@ -297,9 +296,6 @@ namespace Project7_8
                                     + "@R7\n" //R7 return value
                                     + "M=D\n" //hold return address in register temporarily
 
-
-
-
                                     + generatePop("ARG")
 
                                     /*
@@ -321,11 +317,11 @@ namespace Project7_8
                                     + "M=M-1\n"
                                     + "@ARG\nD=M\n@1\nD=D+A\n@SP\nM=D\n"
 
-                                    + "@R6\nD=M\n@1\nA=D-A\nD=M\n@THAT\nM=D\n" //restore that to the caller
-                                    + "@R6\nD=M\n@2\nA=D-A\nD=M\n@THIS\nM=D\n" //restore 
-                                    + "@R6\nD=M\n@3\nA=D-A\nD=M\n@ARG\nM=D\n"
-                                    + "@R6\nD=M\n@4\nA=D-A\nD=M\n@LCL\nM=D\n"
-                                    + "@R7\nA=M\n0;JMP\n";
+                                    + "@R6\nD=M\n@1\nA=D-A\nD=M\n@THAT\nM=D\n" //restore THAT to the caller
+                                    + "@R6\nD=M\n@2\nA=D-A\nD=M\n@THIS\nM=D\n" //restore THIS to the caller
+                                    + "@R6\nD=M\n@3\nA=D-A\nD=M\n@ARG\nM=D\n"  //restore ARG to the caller
+                                    + "@R6\nD=M\n@4\nA=D-A\nD=M\n@LCL\nM=D\n" //restore LCL to the caller
+                                    + "@R7\nA=M\n0;JMP\n";  // jump to the return value (held in R7)
                 return fReturnLine;
 
             }
