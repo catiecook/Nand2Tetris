@@ -40,7 +40,7 @@ namespace Project7_8
 
                     string[] fileEntries = Directory.GetFiles(vmFileDirName,"*.vm",SearchOption.TopDirectoryOnly);
                     foreach(string fileName in fileEntries)
-                        ProcessFile(fileName);
+                        ProcessFile(fileName,output,log);
                 }
             }
 

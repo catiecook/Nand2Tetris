@@ -283,7 +283,6 @@ namespace Project7_8
                 return builder.ToString();
             }
 
-
             public static string fReturn()
             {
 
