@@ -335,10 +335,12 @@ namespace Project7_8
                 dest.Write(s);
                 dest.WriteLine();
             };
-            Action<string> write = s =>
+            Action<string,string> write = (s,comment) =>
             {
-                writeTo(s, output);
-                writeTo(s, log);
+                string str = comment == null ? s : "//" + comment + "\n" + s;
+
+                writeTo(str, output);
+                writeTo(str, log);
             };
 
             int lnnum = 0;
@@ -360,23 +362,23 @@ namespace Project7_8
 
                     switch (command)
                     {
-                        case "add": write(Parse.add()); break;
-                        case "sub": write(Parse.sub()); break;
-                        case "neg": write(Parse.neg()); break;
-                        case "eq": write(Parse.eq()); break;
-                        case "gt": write(Parse.gt()); break;
-                        case "lt": write(Parse.lt()); break;
-                        case "and": write(Parse.and()); break;
-                        case "or": write(Parse.or()); break;
-                        case "not": write(Parse.not()); break;
-                        case "push": write(Parse.push(subs[1], subs[2])); break;
-                        case "pop": write(Parse.pop(subs[1], subs[2])); break;
-                        case "label": write(Parse.label(subs[1])); break;
-                        case "goto": write(Parse.goTo(subs[1])); break;
-                        case "if-goto": write(Parse.ifGoTo(subs[1])); break;
-                        case "function": write(Parse.function(subs[1], subs[2])); break;
-                        case "call": write(Parse.call(subs[1],subs[2])); break;
-                        case "return": write(Parse.fReturn()); break;
+                        case "add": write(Parse.add(),line); break;
+                        case "sub": write(Parse.sub(),line); break;
+                        case "neg": write(Parse.neg(),line); break;
+                        case "eq": write(Parse.eq(),line); break;
+                        case "gt": write(Parse.gt(),line); break;
+                        case "lt": write(Parse.lt(),line); break;
+                        case "and": write(Parse.and(),line); break;
+                        case "or": write(Parse.or(),line); break;
+                        case "not": write(Parse.not(),line); break;
+                        case "push": write(Parse.push(subs[1], subs[2]),line); break;
+                        case "pop": write(Parse.pop(subs[1], subs[2]),line); break;
+                        case "label": write(Parse.label(subs[1]),line); break;
+                        case "goto": write(Parse.goTo(subs[1]),line); break;
+                        case "if-goto": write(Parse.ifGoTo(subs[1]),line); break;
+                        case "function": write(Parse.function(subs[1], subs[2]),line); break;
+                        case "call": write(Parse.call(subs[1],subs[2]),line); break;
+                        case "return": write(Parse.fReturn(),line); break;
                         default: throw new NotImplementedException("Operator \"" + command + "\" not found.");
                     }
 
