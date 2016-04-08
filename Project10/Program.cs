@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+//Program: Jack compiler for the Nand2tetris coursework
+
+
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
+using System.IO;
 
 namespace Project10
 {
@@ -10,7 +15,80 @@ namespace Project10
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("Enter in the .jack file/directory you wish to convert to .vm : ");
+            string vmFileDirName = Console.ReadLine();
+            Console.WriteLine("Would you like the compiler to generate XML comments as well? (y/n) : ");
+            string genCommentInput = Console.ReadLine();
+            bool genComments;
 
+            if (genCommentInput == "y" || genCommentInput == "Y" || genCommentInput == "yes" || genCommentInput == "Yes" || genCommentInput == "YES")
+            {
+                genComments = true;
+            }
+            else
+            {
+                genComments = false;
+            }
+
+            if (File.Exists(vmFileDirName)) //Single file, just process.
+            {
+                ProcessFile(vmFileDirName, genComments);
+            }
+            else if (Directory.Exists(vmFileDirName)) //Directory, process each file in it.
+            {
+                int lastSlash = vmFileDirName.LastIndexOf("\\", 0);
+                string dirName = vmFileDirName.Substring(lastSlash + 1);
+
+                //Using a single output and single log file for all the files in the directory.
+                using (var output = new StreamWriter(dirName + ".vm"))
+                using (var log = new StreamWriter(dirName + ".log"))
+                {
+
+                    string[] fileEntries = Directory.GetFiles(vmFileDirName, "*.jack", SearchOption.TopDirectoryOnly);
+                    foreach (string fileName in fileEntries)
+                        ProcessFile(fileName, genComments, output, log);
+                }
+            }
+
+            else {
+                Console.WriteLine("ERROR : no file/directory was found by that name...");
+            }
+
+            Console.WriteLine("Translation complete. . .");
+            Console.ReadKey();
+        }//end of Main
+
+        static void ProcessFile(string file, bool genComments, StreamWriter output = null, StreamWriter log = null)
+        {
+            //change .jack to .vm
+            char[] vmFileName = new char[file.Length - 2];
+            for (int i = 0; i < file.Length - 2; i++)
+            {
+                vmFileName[i] = file[i];
+            }
+            Console.WriteLine("Processing file: {0}", file);
+            string vmFileNameString = new string(vmFileName);
+            string logFileNameString = new string(vmFileName);
+            logFileNameString = string.Concat(vmFileNameString, "log"); //making a .log to fill with same as what we Console.WriteLine();
+            vmFileNameString = string.Concat(vmFileNameString, "asm"); //.asm is now .hack
+
+            using (var input = new StreamReader(file))
+            {
+
+                //Output streams were passed to the function
+                //(that means this is a file in a directory, and all the files use the same output)
+                if (output != null && log != null) ; //Tokenizer.tokenize(input, genComments);
+
+                //Output streams were not passed
+                //(This is a single file beng parsed, generate the output files now)
+               // else
+           /*         using (var noutput = new StreamWriter(vmFileNameString))
+                    using (var nlog = new StreamWriter(logFileNameString))
+                        Tokenizer.parse(input, noutput, nlog);*/
+            }
         }
-    }
-}
+
+
+
+    }//end of class
+}//end of namespace

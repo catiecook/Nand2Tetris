@@ -16,8 +16,8 @@ namespace Project10
         {
             public enum Type
             {
-                //TODO: Token types;
-                Comment,
+                //Token types;
+                KEYWORD, SYMBOL, IDENTIFIER, INT_CONST, STRING_CONST, COMMENT  // ? we should just throw comments out
             }
 
             public Token(Type t, string c)
@@ -65,7 +65,7 @@ namespace Project10
                 stringIndex = 0;
 
                 //Return a comment whenever a new line is pulled.
-                if(genComments) return new Token(Token.Type.Comment,currentLine_);
+                if(genComments) return new Token(Token.Type.COMMENT,currentLine_);
             }
 
             //TODO: Extract the next token from the line and return.
@@ -73,6 +73,10 @@ namespace Project10
             //      Use a statement like: char currentChar = currentLine_[stringIndex++];
             //      Use the private currentLine_, which is a field. It is directly manipulable.
             //      You can't use some operations on the public 'CurrentLine' property.
+
+
+
+            return null;
         }
 
         
