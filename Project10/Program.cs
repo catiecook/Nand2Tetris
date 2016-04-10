@@ -85,7 +85,8 @@ namespace Project10
                     Tokenizer.Token token = tokenizeThis.tokenize();
                     while (token != null) 
                     {
-                        Console.WriteLine(token.context);
+                        Console.WriteLine("back in main::: " + token.context);
+                        Console.WriteLine("token Type::: " + token.type);
                         token = tokenizeThis.tokenize();
                     } 
 

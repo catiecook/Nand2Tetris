@@ -137,6 +137,11 @@ namespace Project10
                 }
             }
 
+             if(CurrentLine[stringIndex] == ' ' || CurrentLine[stringIndex] == '\t')
+            {
+                CurrentLine = CurrentLine.Substring(CurrentLine.Length - (CurrentLine.Length - 1));
+            }
+
             if (CurrentLine == "" || CurrentLine == "\n") 
             {
                 currentLine_ = input.ReadLine();
@@ -169,23 +174,127 @@ namespace Project10
                 }
             }
 
-            char[] delimiterChars = { ' ', '\t' };
-            string[] words = CurrentLine.Split(delimiterChars);
-            if (keywords.Contains(words[0]))
-            {
-                return new Token(Token.Type.keyword, words[0]);
-            }
 
-
+            Console.ReadKey();
 
             //check for char in symbol list
             if (symbols.Contains(currentLine_[stringIndex]))
             {
-                stringIndex++;
-                return new Token(Token.Type.symbol, currentLine_[stringIndex].ToString());
+                string returnSymbol = currentLine_[stringIndex].ToString();
+                CurrentLine = CurrentLine.Substring(CurrentLine.Length - (CurrentLine.Length - 1));
+                return new Token(Token.Type.symbol, returnSymbol);
             }
 
 
+            char[] delimiterChars = { ' ', '\t' };
+            string s1 = CurrentLine.Substring(0, 2);
+            string s2;
+            int i = 0;
+            bool isAKeyword = false;
+            foreach (string element in keywords)
+            {
+                s1 = CurrentLine.Substring(0, 2);
+                s2 = element;
+                if (String.Compare(s1, s2) == 0)
+                {
+                    isAKeyword = true;
+                    break;
+                }
+                s1 = CurrentLine.Substring(0, 3);
+                s2 = element;
+                if (String.Compare(s1, s2) == 0)
+                {
+                    isAKeyword = true;
+                    break;
+                }
+                s1 = CurrentLine.Substring(0, 4);
+                s2 = element;
+                if (String.Compare(s1, s2) == 0)
+                {
+                    isAKeyword = true;
+                    break;
+                }
+                s1 = CurrentLine.Substring(0, 5);
+                s2 = element;
+                if (String.Compare(s1, s2) == 0)
+                {
+                    isAKeyword = true;
+                    break;
+                }
+                s1 = CurrentLine.Substring(0, 6);
+                s2 = element;
+                if (String.Compare(s1, s2) == 0)
+                {
+                    isAKeyword = true;
+                    break;
+                }
+                s1 = CurrentLine.Substring(0, 7);
+                s2 = element;
+                if (String.Compare(s1, s2) == 0)
+                {
+                    isAKeyword = true;
+                    break;
+                }
+                s1 = CurrentLine.Substring(0, 8);
+                s2 = element;
+                if (String.Compare(s1, s2) == 0)
+                {
+                    isAKeyword = true;
+                    break;
+                }
+                s1 = CurrentLine.Substring(0, 9);
+                s2 = element;
+                if (String.Compare(s1, s2) == 0)
+                {
+                    isAKeyword = true;
+                    break;
+                }
+                s1 = CurrentLine.Substring(0, 10);
+                s2 = element;
+                if (String.Compare(s1, s2) == 0)
+                {
+                    isAKeyword = true;
+                    break;
+                }
+                s1 = CurrentLine.Substring(0, 11);
+                s2 = element;
+                if (String.Compare(s1, s2) == 0)
+                {
+                    isAKeyword = true;
+                    break;
+                }
+
+            }
+            if (isAKeyword)
+            {
+                CurrentLine = CurrentLine.Substring(s1.Length);
+                Console.WriteLine(CurrentLine + "   CURRENT LINE");
+                return new Token(Token.Type.keyword, s1);
+            }
+          /*  else if (Regex.IsMatch(words[0], "1234567890")) // found a int_const
+            {
+                int remaining = CurrentLine.Length - words[0].Length;
+                CurrentLine = CurrentLine.Substring(CurrentLine.Length - remaining);
+                Console.WriteLine(CurrentLine + "   CURRENT LINE");
+                return new Token(Token.Type.int_const, words[0]);
+            } */
+            else if(Regex.IsMatch(CurrentLine[stringIndex].ToString(), "\""))
+            {
+                int quoteIndex = CurrentLine.IndexOf("\"");
+                string quote = CurrentLine.Substring(quoteIndex);
+                Console.WriteLine("quote : " + quote);
+                CurrentLine = CurrentLine.Substring(CurrentLine.Length - (CurrentLine.Length - quoteIndex ));
+                //   CurrentLine = CurrentLine.Replace("\"", "");
+                //CurrentLine = CurrentLine.Substring(CurrentLine.Length - (CurrentLine.Length - 1));
+                return new Token(Token.Type.string_const, quote);
+            }
+       /*     else 
+            {
+                int remaining = CurrentLine.Length - words[0].Length;
+                CurrentLine = CurrentLine.Substring(CurrentLine.Length - remaining);
+                Console.WriteLine(CurrentLine + "   CURRENT LINE");
+                return new Token(Token.Type.identifier, words[0]);
+            }*/
 
             Console.ReadKey();
 
