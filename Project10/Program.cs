@@ -16,7 +16,7 @@ namespace Project10
         static void Main(string[] args)
         {
             Console.WriteLine("Enter in the .jack file/directory you wish to convert to .vm : ");
-            string vmFileDirName = Console.ReadLine();
+            string jackFileDirName = Console.ReadLine();
             Console.WriteLine("Would you like the compiler to generate XML comments as well? (y/n) : ");
             string genCommentInput = Console.ReadLine();
             bool genComments;
@@ -30,21 +30,23 @@ namespace Project10
                 genComments = false;
             }
 
-            if (File.Exists(vmFileDirName)) //Single file, just process.
+            if (File.Exists(jackFileDirName)) //Single file, just process.
             {
-                ProcessFile(vmFileDirName, genComments);
+                ProcessFile(jackFileDirName, genComments);
+                Console.WriteLine("found file");
             }
-            else if (Directory.Exists(vmFileDirName)) //Directory, process each file in it.
+            else if (Directory.Exists(jackFileDirName)) //Directory, process each file in it.
             {
-                int lastSlash = vmFileDirName.LastIndexOf("\\", 0);
-                string dirName = vmFileDirName.Substring(lastSlash + 1);
+                Console.WriteLine("found directory");
+                int lastSlash = jackFileDirName.LastIndexOf("\\", 0);
+                string dirName = jackFileDirName.Substring(lastSlash + 1);
 
                 //Using a single output and single log file for all the files in the directory.
                 using (var output = new StreamWriter(dirName + ".vm"))
                 using (var log = new StreamWriter(dirName + ".log"))
                 {
 
-                    string[] fileEntries = Directory.GetFiles(vmFileDirName, "*.jack", SearchOption.TopDirectoryOnly);
+                    string[] fileEntries = Directory.GetFiles(jackFileDirName, "*.jack", SearchOption.TopDirectoryOnly);
                     foreach (string fileName in fileEntries)
                         ProcessFile(fileName, genComments, output, log);
                 }
@@ -61,8 +63,8 @@ namespace Project10
         static void ProcessFile(string file, bool genComments, StreamWriter output = null, StreamWriter log = null)
         {
             //change .jack to .vm
-            char[] vmFileName = new char[file.Length - 2];
-            for (int i = 0; i < file.Length - 2; i++)
+            char[] vmFileName = new char[file.Length - 4];
+            for (int i = 0; i < file.Length - 4; i++)
             {
                 vmFileName[i] = file[i];
             }
@@ -70,21 +72,25 @@ namespace Project10
             string vmFileNameString = new string(vmFileName);
             string logFileNameString = new string(vmFileName);
             logFileNameString = string.Concat(vmFileNameString, "log"); //making a .log to fill with same as what we Console.WriteLine();
-            vmFileNameString = string.Concat(vmFileNameString, "asm"); //.asm is now .hack
+            vmFileNameString = string.Concat(vmFileNameString, "vm"); 
 
             using (var input = new StreamReader(file))
             {
+                Tokenizer tokenizeThis = new Tokenizer(input, genComments);
 
                 //Output streams were passed to the function
                 //(that means this is a file in a directory, and all the files use the same output)
-                if (output != null && log != null) ; //Tokenizer.tokenize(input, genComments);
+                if (output != null && log != null)
+                {
+                    Tokenizer.Token token = tokenizeThis.tokenize();
+                    while (token != null) 
+                    {
+                        Console.WriteLine(token.context);
+                        token = tokenizeThis.tokenize();
+                    } 
 
-                //Output streams were not passed
-                //(This is a single file beng parsed, generate the output files now)
-               // else
-           /*         using (var noutput = new StreamWriter(vmFileNameString))
-                    using (var nlog = new StreamWriter(logFileNameString))
-                        Tokenizer.parse(input, noutput, nlog);*/
+                }
+
             }
         }
 
