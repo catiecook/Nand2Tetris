@@ -125,184 +125,65 @@ namespace Project10
 
             //tegans code ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             //get rid of comments in code 
-             while (currentLine_[stringIndex] == '/' && currentLine_[stringIndex+1] == '/')
-             {
-                //comment found
-                currentLine_ = input.ReadLine();
-                stringIndex = 0;
-                if (CurrentLine == "" || CurrentLine == "\n")
+
+            //to get rid of whitespace and comments
+            bool keepChecking = true;
+
+            while (keepChecking)
+            {
+                Console.WriteLine(currentLine_);
+                keepChecking = false;
+                if (currentLine_.Length <= 1 || currentLine_[stringIndex] == '\n')
                 {
                     currentLine_ = input.ReadLine();
-                    stringIndex = 0;
+                    keepChecking = true;
                 }
-            }
-
-             if(CurrentLine[stringIndex] == ' ' || CurrentLine[stringIndex] == '\t')
-            {
-                CurrentLine = CurrentLine.Substring(CurrentLine.Length - (CurrentLine.Length - 1));
-            }
-
-            if (CurrentLine == "" || CurrentLine == "\n") 
-            {
-                currentLine_ = input.ReadLine();
-                stringIndex = 0;
-            }
-
-            if (currentLine_[stringIndex] == '/' && currentLine_[stringIndex + 1] == '*')
-            {
-                bool multiLineCommentFound = false;
-                while (multiLineCommentFound == false )
+                if (CurrentLine[stringIndex] == ' ' || CurrentLine[stringIndex] == '\t')
                 {
                     stringIndex++;
-                    if (stringIndex >= CurrentLine.Length)
+                    keepChecking = true;
+                }
+
+                if ((stringIndex + 1) < (currentLine_.Length - 1) && currentLine_[stringIndex] == '/' && currentLine_[stringIndex] == '/')
+                {
+                    // Read in new line and keep checking
+                    currentLine_ = input.ReadLine();
+                    keepChecking = true;
+                }
+                //check for /*....*/ multiple line comments
+                if ((stringIndex + 1) < (currentLine_.Length - 1) && currentLine_[stringIndex] == '/' && currentLine_[stringIndex + 1] == '*')
+                {
+                    bool multiLineCommentFound = false;
+                    while (multiLineCommentFound == false)
                     {
-                        currentLine_ = input.ReadLine();
-                        stringIndex = 0;
-                    }
-                    if (currentLine_[stringIndex] == '*' && currentLine_[stringIndex + 1] == '/')
-                    {
-                        stringIndex += 2;
-                        //foudnd end of multiple line comment
-                        multiLineCommentFound = true;
-                        //stringIndex is now after last '/' of comment...
-                        if (stringIndex == CurrentLine.Length)
+                        stringIndex++;
+                        if (stringIndex >= currentLine_.Length)
                         {
                             currentLine_ = input.ReadLine();
-                            stringIndex = 0;
                         }
-                    }
+                        if (currentLine_[stringIndex] == '*' && currentLine_[stringIndex+1] == '/')
+                        {
+                            stringIndex += 2;
+                            multiLineCommentFound = true;
+                            if(stringIndex == currentLine_.Length)
+                            {
+                                currentLine_ = input.ReadLine();
+                            }
+                        }
+
+                    }//end of while
+                    keepChecking = true;
                 }
             }
 
-
-            Console.ReadKey();
-
-            //check for char in symbol list
-            if (symbols.Contains(currentLine_[stringIndex]))
-            {
-                string returnSymbol = currentLine_[stringIndex].ToString();
-                CurrentLine = CurrentLine.Substring(CurrentLine.Length - (CurrentLine.Length - 1));
-                return new Token(Token.Type.symbol, returnSymbol);
-            }
-
-
-            char[] delimiterChars = { ' ', '\t' };
-            string s1 = CurrentLine.Substring(0, 2);
-            string s2;
-            int i = 0;
-            bool isAKeyword = false;
-            foreach (string element in keywords)
-            {
-                s1 = CurrentLine.Substring(0, 2);
-                s2 = element;
-                if (String.Compare(s1, s2) == 0)
-                {
-                    isAKeyword = true;
-                    break;
-                }
-                s1 = CurrentLine.Substring(0, 3);
-                s2 = element;
-                if (String.Compare(s1, s2) == 0)
-                {
-                    isAKeyword = true;
-                    break;
-                }
-                s1 = CurrentLine.Substring(0, 4);
-                s2 = element;
-                if (String.Compare(s1, s2) == 0)
-                {
-                    isAKeyword = true;
-                    break;
-                }
-                s1 = CurrentLine.Substring(0, 5);
-                s2 = element;
-                if (String.Compare(s1, s2) == 0)
-                {
-                    isAKeyword = true;
-                    break;
-                }
-                s1 = CurrentLine.Substring(0, 6);
-                s2 = element;
-                if (String.Compare(s1, s2) == 0)
-                {
-                    isAKeyword = true;
-                    break;
-                }
-                s1 = CurrentLine.Substring(0, 7);
-                s2 = element;
-                if (String.Compare(s1, s2) == 0)
-                {
-                    isAKeyword = true;
-                    break;
-                }
-                s1 = CurrentLine.Substring(0, 8);
-                s2 = element;
-                if (String.Compare(s1, s2) == 0)
-                {
-                    isAKeyword = true;
-                    break;
-                }
-                s1 = CurrentLine.Substring(0, 9);
-                s2 = element;
-                if (String.Compare(s1, s2) == 0)
-                {
-                    isAKeyword = true;
-                    break;
-                }
-                s1 = CurrentLine.Substring(0, 10);
-                s2 = element;
-                if (String.Compare(s1, s2) == 0)
-                {
-                    isAKeyword = true;
-                    break;
-                }
-                s1 = CurrentLine.Substring(0, 11);
-                s2 = element;
-                if (String.Compare(s1, s2) == 0)
-                {
-                    isAKeyword = true;
-                    break;
-                }
-
-            }
-            if (isAKeyword)
-            {
-                CurrentLine = CurrentLine.Substring(s1.Length);
-                Console.WriteLine(CurrentLine + "   CURRENT LINE");
-                return new Token(Token.Type.keyword, s1);
-            }
-          /*  else if (Regex.IsMatch(words[0], "1234567890")) // found a int_const
-            {
-                int remaining = CurrentLine.Length - words[0].Length;
-                CurrentLine = CurrentLine.Substring(CurrentLine.Length - remaining);
-                Console.WriteLine(CurrentLine + "   CURRENT LINE");
-                return new Token(Token.Type.int_const, words[0]);
-            } */
-            else if(Regex.IsMatch(CurrentLine[stringIndex].ToString(), "\""))
-            {
-                int quoteIndex = CurrentLine.IndexOf("\"");
-                string quote = CurrentLine.Substring(quoteIndex);
-                Console.WriteLine("quote : " + quote);
-                CurrentLine = CurrentLine.Substring(CurrentLine.Length - (CurrentLine.Length - quoteIndex ));
-                //   CurrentLine = CurrentLine.Replace("\"", "");
-                //CurrentLine = CurrentLine.Substring(CurrentLine.Length - (CurrentLine.Length - 1));
-                return new Token(Token.Type.string_const, quote);
-            }
-       /*     else 
-            {
-                int remaining = CurrentLine.Length - words[0].Length;
-                CurrentLine = CurrentLine.Substring(CurrentLine.Length - remaining);
-                Console.WriteLine(CurrentLine + "   CURRENT LINE");
-                return new Token(Token.Type.identifier, words[0]);
-            }*/
-
-            Console.ReadKey();
 
             // For now, just create a new token that contains the character at stringIndex
             Token token = new Token(Token.Type.keyword, currentLine_[stringIndex].ToString());
             stringIndex = 0;
             return token;
        }
+
+
 
     }
 }
