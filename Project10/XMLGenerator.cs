@@ -9,9 +9,10 @@ namespace Project10
 {
     class XMLGenerator
     {
-        public static void generateXML(Tokenizer tokenizer)
+        public static void generateXML(Tokenizer tokenizer,StreamWriter output)
         {
             //TODO: Generate XML
+            //Pull tokens one by one and write them to the file.
         }
     }
 }

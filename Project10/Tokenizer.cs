@@ -152,7 +152,7 @@ namespace Project10
         public Token tokenize()
         {
             //If we've reached the end of a line, get a new line.
-            if (stringIndex >= CurrentLine.Length || CurrentLine.Length == 0 || CurrentLine == null) {
+            if (stringIndex >= currentLine_.Length || currentLine_.Length == 0 || currentLine_ == null) {
 
                 //If we've reached the end of the file, return NULL:
                 if (input.EndOfStream) return null;
