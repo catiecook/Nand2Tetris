@@ -60,10 +60,17 @@ namespace Project10
             Console.ReadKey();
         }//end of Main
 
+
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~PROCESS FILE FUNCTION~~~~~~~~~~~~~~~~~~
+
         static void ProcessFile(string file, bool genComments, StreamWriter output = null, StreamWriter log = null)
         {
-            //change .jack to .vm
-            char[] vmFileName = new char[file.Length - 4];
+            //create List of tokens
+            List<Tokenizer.Token> tokenList = new List<Tokenizer.Token>();
+
+        //change .jack to .vm
+        char[] vmFileName = new char[file.Length - 4];
             for (int i = 0; i < file.Length - 4; i++)
             {
                 vmFileName[i] = file[i];
@@ -88,11 +95,18 @@ namespace Project10
                         Console.WriteLine("back in main::: " + token.context);
                         Console.WriteLine("token Type::: " + token.type);
                         token = tokenizeThis.tokenize();
+                        tokenList.Add(token);
                     } 
 
                 }
 
             }
+
+            foreach(Tokenizer.Token thisToken in tokenList)
+            {
+                Console.WriteLine(thisToken);
+            }
+
         }
 
 
