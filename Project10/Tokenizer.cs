@@ -107,12 +107,12 @@ namespace Project10
                 identifier,
                 int_const,
                 string_const,
-                COMMENT  // ? we should just throw comments out
+                COMMENT  
                 //The COMMENT type isn't for comments in the existing code,
                 //instead, it is for the comments we generate in the scanner.
                 //These comments are the contents of the line currently being scanned.
                 //This makes debugging the generated code later significantly easier.
-                //See the inside of the first if statement in tokenize.
+
             }
 
             public Token(Type t, string c)
@@ -123,7 +123,6 @@ namespace Project10
 
             public readonly Type type;
             public readonly string context;
-            public string xmlstring { get { return "<" + type + ">" + context + "</" + type + ">"; } }
         }
 
         public Tokenizer(StreamReader ins, bool generateComments)
@@ -158,6 +157,66 @@ namespace Project10
                 if (input.EndOfStream) return null;
 
                 currentLine_ = input.ReadLine().Trim();
+
+                //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~start of removing whitespace
+                bool keepChecking = true;
+
+                while (keepChecking)
+                {
+                    keepChecking = false;
+                    if (currentLine_.Length <= 1 || currentLine_[stringIndex] == '\n')
+                    {
+                        currentLine_ = input.ReadLine();
+                        keepChecking = true;
+                    }
+
+                    string pattern = @"\s+";
+                    string replacement = "";
+                    Regex regex = new Regex(pattern);
+                    CurrentLine = regex.Replace(CurrentLine, replacement); //Takes out all whitespace!
+
+                    string result = null;
+                    for (int i = 0; i < 200; i++)
+                    {
+                        result = Regex.Replace(CurrentLine, @"\s+", "");
+                    }
+
+                    if ((stringIndex + 1) < (currentLine_.Length - 1) && currentLine_[stringIndex] == '/' && currentLine_[stringIndex] == '/')
+                    {
+                        // Read in new line and keep checking
+                        currentLine_ = input.ReadLine();
+                        stringIndex = 0;
+                        keepChecking = true;
+                    }
+                    //check for /*....*/ multiple line comments
+                    if ((stringIndex + 1) < (currentLine_.Length - 1) && currentLine_[stringIndex] == '/' && currentLine_[stringIndex + 1] == '*')
+                    {
+                        bool multiLineCommentFound = false;
+                        while (multiLineCommentFound == false)
+                        {
+                            stringIndex++;
+                            if (stringIndex >= currentLine_.Length)
+                            {
+                                currentLine_ = input.ReadLine();
+                                stringIndex = 0;
+                            }
+                            if (currentLine_[stringIndex] == '*' && currentLine_[stringIndex + 1] == '/')
+                            {
+                                stringIndex += 2;
+                                multiLineCommentFound = true;
+                                if (stringIndex == currentLine_.Length)
+                                {
+                                    currentLine_ = input.ReadLine();
+                                    stringIndex = 0;
+                                }
+                            }
+
+                        }//end of while
+                        keepChecking = true;
+
+                    }
+
+                }//end of removing whitespace while
                 stringIndex = 0;
 
                 //Return a comment whenever a new line is pulled.
@@ -169,13 +228,6 @@ namespace Project10
             //      Use a statement like: char currentChar = currentLine_[stringIndex++];
             //      Use the private currentLine_, which is a field. It is directly manipulable.
             //      You can't use some operations on the public 'CurrentLine' property.
-
-            //tegans code ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-            //to get rid of whitespace and comments
-            //removeWhiteSpace(); ~~ Ian: Moved into the if statement above
-            //comments and whitespaces deleted
-            //now start to tokenize rest
 
             Console.WriteLine(currentLine_);
 
@@ -311,11 +363,11 @@ namespace Project10
             //return token;
        }
 
-
+         
 
 
  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~REMOVE WHITESPACE/COMMENT FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+ 
             //This function isn't needed.
             //C# has an existing function to do this: string.trim()
             //It removes all the leading and trailing whitespace.
