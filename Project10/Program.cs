@@ -42,7 +42,7 @@ namespace Project10
                 string dirName = jackFileDirName.Substring(lastSlash + 1);
 
                 //Using a single output and single log file for all the files in the directory.
-                using (var output = new StreamWriter(dirName + ".vm"))
+                using (var output = new StreamWriter(dirName + ".xml"))
                 using (var log = new StreamWriter(dirName + ".log"))
                 {
 
@@ -79,7 +79,7 @@ namespace Project10
             string vmFileNameString = new string(vmFileName);
             string logFileNameString = new string(vmFileName);
             logFileNameString = string.Concat(vmFileNameString, "log"); //making a .log to fill with same as what we Console.WriteLine();
-            vmFileNameString = string.Concat(vmFileNameString, "vm");
+            vmFileNameString = string.Concat(vmFileNameString, "xml");
 
             Console.WriteLine("\n");
 
@@ -98,20 +98,21 @@ namespace Project10
                         token = tokenizeThis.tokenize();
                         tokenList.Add(token);
                     }
-
                 }
-
-            }
+            }//end of using
 
             foreach (Tokenizer.Token thisToken in tokenList)
             {
                 if (thisToken != null)
                 {
-                    Console.WriteLine(thisToken.context);
+                    Console.WriteLine(thisToken.context + "   " + thisToken.type);
                 }
+            }//end of writing out tokens to screen
 
-            }
 
+            //send tokenList to XMLGenerator and output file
+            XMLGenerator.generateXML(tokenList, output);
+   
         }
 
 
