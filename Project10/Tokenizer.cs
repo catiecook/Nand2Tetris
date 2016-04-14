@@ -165,7 +165,7 @@ namespace Project10
                 //first quote of string_const found
                 foreach (char character in CurrentLine)
                 {
-                    if (CurrentLine[quoteIndex] != '\"')
+                    if (CurrentLine[quoteIndex] != '\"') //string_const are only found inside quotes! 
                     {
                         quoteIndex++;
                     }
@@ -218,10 +218,9 @@ namespace Project10
 
                 string stringIdentifier = CurrentLine.Substring(stringIndex, letterIndex - stringIndex + 1);
 
-                /*
                 if (stringIdentifier.Length > 5 ){
 
-                    string arrayString = stringIdentifier.Substring(stringIndex, 5);
+                    string arrayString = stringIdentifier.Substring(0, 5); //when there is Arraya in CurrentLine, seperates them to Array a instead
                     if("Array" == arrayString)
                     {
                         Token tokenArrayIdentifier = new Token(Token.Type.identifier, "Array");
@@ -229,7 +228,7 @@ namespace Project10
                         return tokenArrayIdentifier;
                     }
 
-                }*/
+                }
                     
 
                 stringIndex = letterIndex + 1;

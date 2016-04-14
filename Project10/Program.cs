@@ -92,6 +92,7 @@ namespace Project10
                 if (output != null && log != null)
                 {
                     Tokenizer.Token token = tokenizeThis.tokenize();
+                    tokenList.Add(token);
                     while (token != null)
                     {
                         token = tokenizeThis.tokenize();
