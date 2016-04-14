@@ -18,10 +18,10 @@ namespace Project10
             Console.WriteLine("Enter in the .jack file/directory you wish to convert to .vm : ");
             string jackFileDirName = Console.ReadLine();
             Console.WriteLine("Would you like the compiler to generate XML comments as well? (y/n) : ");
-            string genCommentInput = Console.ReadLine();
+            string genCommentInput = Console.ReadLine().ToLower();
             bool genComments;
 
-            if (genCommentInput == "y" || genCommentInput == "Y" || genCommentInput == "yes" || genCommentInput == "Yes" || genCommentInput == "YES")
+            if (genCommentInput == "y" || genCommentInput == "yes")
             {
                 genComments = true;
             }
@@ -89,15 +89,14 @@ namespace Project10
 
                 //Output streams were passed to the function
                 //(that means this is a file in a directory, and all the files use the same output)
-                if (output != null && log != null)
+                //if (output != null && log != null)
                 {
-                    Tokenizer.Token token = tokenizeThis.tokenize();
-                    tokenList.Add(token);
-                    while (token != null)
-                    {
+                    Tokenizer.Token token;
+                    do {
                         token = tokenizeThis.tokenize();
                         tokenList.Add(token);
                     }
+                    while(token != null);
                 }
             }//end of using
 
@@ -109,9 +108,11 @@ namespace Project10
                 }
             }//end of writing out tokens to screen
 
-
             //send tokenList to XMLGenerator and output file
-            XMLGenerator.generateXML(tokenList, output);
+            if(output == null)
+                using(var out2 = new StreamWriter(vmFileNameString))
+                    XMLGenerator.generateXML(tokenList,out2);
+            else XMLGenerator.generateXML(tokenList,output);
    
         }
 

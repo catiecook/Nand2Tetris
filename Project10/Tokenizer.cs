@@ -22,19 +22,28 @@ namespace Project10
             public enum Type
             {
                 //Token types;
-                keyword, symbol, identifier, int_const, string_const, COMMENT  // ? we should just throw comments out
+                keyword, symbol, identifier, int_const, string_const, COMMENT
             }
 
             public Token(Type t, string c)
             {
                 type = t;
                 context = c;
-                string xmlstring = "<" + type + ">" + context + "</" + type + ">";
             }
 
             public readonly Type type;
             public readonly string context;
-            public readonly string xmlstring;
+            public string xmlstring
+            {
+                get
+                {
+                    return "<" + type + ">" +
+                        context.
+                        Replace("&","&amp").
+                        Replace("<","&lt").
+                        Replace(">","&gt").
+                        Replace("\"","&quot") +
+                        "</" + type + ">"; } }
         }
 
         public Tokenizer(StreamReader ins, bool generateComments)
@@ -104,154 +113,157 @@ namespace Project10
         public Token tokenize()
         {
             //If we've reached the end of a line, get a new line.
-            if (stringIndex >= CurrentLine.Length || CurrentLine.Length == 0 || CurrentLine == null)
-            {
+            if(CurrentLine == null || stringIndex >= CurrentLine.Length || CurrentLine.Length == 0) {
+                string nonUgly;
+                do {
 
+
+                    //If we've reached the end of the file, return NULL:
+                    if(input.EndOfStream) {
+                        return null;
+                    }
+
+                    currentLine_ = input.ReadLine();
+                    stringIndex = 0;
+
+                    //to get rid of whitespace and comments
+                    nonUgly = removeWhiteSpace();
+                    //comments and whitespaces deleted
+                    //now start to tokenize rest
+                }
+                while(currentLine_ == null || stringIndex >= CurrentLine.Length || CurrentLine.Length == 0);
+                //Return a comment whenever a new line is pulled.
+                if(genComments) return new Token(Token.Type.COMMENT,nonUgly);
+            }
+
+                //tegans code ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+
+                if(CurrentLine == null) {
                 //If we've reached the end of the file, return NULL:
-                if (input.EndOfStream) return null;
+                if(input.EndOfStream) {
+                    return null;
+                }
 
                 currentLine_ = input.ReadLine();
                 stringIndex = 0;
 
                 //Return a comment whenever a new line is pulled.
-                if (genComments) return new Token(Token.Type.COMMENT, currentLine_);
+                if(genComments) return new Token(Token.Type.COMMENT,currentLine_);
             }
-
-            //tegans code ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-            //to get rid of whitespace and comments
-            removeWhiteSpace();
-            //comments and whitespaces deleted
-            //now start to tokenize rest
-
-
-            if (CurrentLine == null)
+            if(symbols.Contains(CurrentLine[stringIndex]))  //~~~~~~~~~~~~~~~~~~~~~~~~check for symbols
             {
-                stringIndex = 0;
-                return null;
-            }
-            if (symbols.Contains(CurrentLine[stringIndex]))  //~~~~~~~~~~~~~~~~~~~~~~~~check for symbols
-            {
-                Token tokenSymbol = new Token(Token.Type.symbol, currentLine_[stringIndex].ToString());
+                Token tokenSymbol = new Token(Token.Type.symbol,currentLine_[stringIndex].ToString());
                 stringIndex++;
                 return tokenSymbol;
             }
 
 
-            foreach (string value in keywords) //~~~~~~~~~~~~~~~~~~~~~~~~check for keywords
+            foreach(string value in keywords) //~~~~~~~~~~~~~~~~~~~~~~~~check for keywords
             {
                 string possibleKeyword = null;
-                if (stringIndex + value.Length <= CurrentLine.Length)
-                {
-                    possibleKeyword = CurrentLine.Substring(stringIndex, value.Length);
+                if(stringIndex + value.Length <= CurrentLine.Length) {
+                    possibleKeyword = CurrentLine.Substring(stringIndex,value.Length);
                 }
 
-                if (possibleKeyword == value)
-                {
+                if(possibleKeyword == value) {
                     //keyword found!
-                    Token tokenKeyword = new Token(Token.Type.keyword, possibleKeyword);
+                    Token tokenKeyword = new Token(Token.Type.keyword,possibleKeyword);
                     stringIndex += possibleKeyword.Length;
                     return tokenKeyword;
                 }
-                if (value == "return")
-                {
+                if(value == "return") {
                     //no keyword was found
                     break;
                 }
             }
 
-            if (CurrentLine[stringIndex] == '\"') //~~~~~~~~~~~~~~~~~~~~~~~~check for string_const
+            if(CurrentLine[stringIndex] == '\"') //~~~~~~~~~~~~~~~~~~~~~~~~check for string_const
             {
                 int quoteIndex = stringIndex + 1;
                 //first quote of string_const found
-                foreach (char character in CurrentLine)
-                {
-                    if (CurrentLine[quoteIndex] != '\"') //string_const are only found inside quotes! 
+                foreach(char character in CurrentLine) {
+                    if(CurrentLine[quoteIndex] != '\"') //string_const are only found inside quotes! 
                     {
                         quoteIndex++;
                     }
-                    else
-                    {
+                    else {
                         //second quote found
-                        string stringConst = CurrentLine.Substring(stringIndex + 1, quoteIndex - 1 - stringIndex);
+                        string stringConst = CurrentLine.Substring(stringIndex + 1,quoteIndex - 1 - stringIndex);
                         stringIndex = quoteIndex + 1;
-                        Token tokenStringConst = new Token(Token.Type.string_const, stringConst);
+                        Token tokenStringConst = new Token(Token.Type.string_const,stringConst);
                         return tokenStringConst;
                     }
 
                 }
             }
 
-            if (Char.IsDigit(CurrentLine[stringIndex])) //~~~~~~~~~~~~~~~~~~~~~~~~check for int_const
+            if(Char.IsDigit(CurrentLine[stringIndex])) //~~~~~~~~~~~~~~~~~~~~~~~~check for int_const
             {
                 int digitIndex = stringIndex;
-                foreach (char i in CurrentLine)
-                {
-                    if (Char.IsDigit(CurrentLine[digitIndex]))
-                    {
+                foreach(char i in CurrentLine) {
+                    if(Char.IsDigit(CurrentLine[digitIndex])) {
                         digitIndex++;
                     }
                 }
                 //return digit
-                string stringDigit = CurrentLine.Substring(stringIndex, CurrentLine.Length - digitIndex);
+                string stringDigit = CurrentLine.Substring(stringIndex,CurrentLine.Length - digitIndex);
                 stringIndex = digitIndex + 1;
-                Token tokenIntConst = new Token(Token.Type.int_const, stringDigit);
+                Token tokenIntConst = new Token(Token.Type.int_const,stringDigit);
                 return tokenIntConst;
             }
 
 
-            if (Char.IsLetter(CurrentLine[stringIndex])) //~~~~~~~~~~~~~~~~~~~~~~~~check for identifier, already found all other cases. 
+            if(Char.IsLetter(CurrentLine[stringIndex])) //~~~~~~~~~~~~~~~~~~~~~~~~check for identifier, already found all other cases. 
             {
                 int letterIndex = stringIndex;
-                foreach (char i in CurrentLine)
-                {
-                    if (CurrentLine.Length > letterIndex && symbols.Contains(CurrentLine[letterIndex + 1]))
-                    {
+                foreach(char i in CurrentLine) {
+                    if(CurrentLine.Length > letterIndex && symbols.Contains(CurrentLine[letterIndex + 1])) {
                         //end of identifier was found
                         break;
                     }
-                    else
-                    {
+                    else {
                         letterIndex++;
 
                     }
                 }
 
-                string stringIdentifier = CurrentLine.Substring(stringIndex, letterIndex - stringIndex + 1);
+                string stringIdentifier = CurrentLine.Substring(stringIndex,letterIndex - stringIndex + 1);
 
-                if (stringIdentifier.Length > 5 ){
+                if(stringIdentifier.Length > 5) {
 
-                    string arrayString = stringIdentifier.Substring(0, 5); //when there is Arraya in CurrentLine, seperates them to Array a instead
-                    if("Array" == arrayString)
-                    {
-                        Token tokenArrayIdentifier = new Token(Token.Type.identifier, "Array");
+                    string arrayString = stringIdentifier.Substring(0,5); //when there is Arraya in CurrentLine, seperates them to Array a instead
+                    if("Array" == arrayString) {
+                        Token tokenArrayIdentifier = new Token(Token.Type.identifier,"Array");
                         stringIndex += 5;
                         return tokenArrayIdentifier;
                     }
 
                 }
-                    
+
 
                 stringIndex = letterIndex + 1;
-                Token tokenIdentifier = new Token(Token.Type.identifier, stringIdentifier);
+                Token tokenIdentifier = new Token(Token.Type.identifier,stringIdentifier);
                 return tokenIdentifier;
-                }
-            
+            }
+
 
 
             // For now, just create a new token that contains the character at stringIndex
-            Token token = new Token(Token.Type.COMMENT, currentLine_[stringIndex].ToString());
-            stringIndex = 0;
-            return token;
+            throw new FormatException("Syntax error: " + currentLine_);
         }
 
 
 
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~REMOVE WHITESPACE/COMMENT FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        void removeWhiteSpace()
+        string removeWhiteSpace()
         {
             bool keepChecking = true;
+
+            string nonUgly = currentLine_;
 
             while (keepChecking)
             {
@@ -266,16 +278,16 @@ namespace Project10
                     stringIndex = 0;
                     break;
                 }
-                string pattern = @"\s+";
+                string pattern = "(?<!\")\\s+(?!\")";
                 string replacement = "";
                 Regex regex = new Regex(pattern);
-                CurrentLine = regex.Replace(CurrentLine, replacement); //Takes out all whitespace!
+                
 
-                string result = null;
-                for (int i = 0; i < 200; i++)
-                {
-                    result = Regex.Replace(CurrentLine, @"\s+", "");
-                }
+                //string result = null;
+                //for (int i = 0; i < 200; i++)
+                //{
+                //    result = Regex.Replace(CurrentLine, @"\s+", "");
+                //}
 
                 if ((stringIndex + 1) < (currentLine_.Length - 1) && currentLine_[stringIndex] == '/' && currentLine_[stringIndex] == '/') //takes out single-line comments
                 {
@@ -283,6 +295,7 @@ namespace Project10
                     currentLine_ = input.ReadLine();
                     stringIndex = 0;
                     keepChecking = true;
+                    continue;
                 }
                 //check for /*....*/ multiple line comments
                 if ((stringIndex + 1) < (currentLine_.Length - 1) && currentLine_[stringIndex] == '/' && currentLine_[stringIndex + 1] == '*') //takes out multi-line comments
@@ -309,9 +322,16 @@ namespace Project10
 
                     }//end of while
                     keepChecking = true;
+                    continue;
 
                 }
+
+                nonUgly = CurrentLine;
+
+                CurrentLine = regex.Replace(CurrentLine,replacement); //Takes out all whitespace!
             }
+
+            return nonUgly;
         }
     }
 }
