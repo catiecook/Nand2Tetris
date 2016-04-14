@@ -42,7 +42,7 @@ namespace Project10
                 string dirName = jackFileDirName.Substring(lastSlash + 1);
 
                 //Using a single output and single log file for all the files in the directory.
-                using (var output = new StreamWriter(dirName + ".vm"))
+                using (var output = new StreamWriter(dirName + ".xml"))
                 using (var log = new StreamWriter(dirName + ".log"))
                 {
 
@@ -69,8 +69,8 @@ namespace Project10
             //create List of tokens
             List<Tokenizer.Token> tokenList = new List<Tokenizer.Token>();
 
-        //change .jack to .vm
-        char[] vmFileName = new char[file.Length - 4];
+            //change .jack to .vm
+            char[] vmFileName = new char[file.Length - 4];
             for (int i = 0; i < file.Length - 4; i++)
             {
                 vmFileName[i] = file[i];
@@ -79,7 +79,9 @@ namespace Project10
             string vmFileNameString = new string(vmFileName);
             string logFileNameString = new string(vmFileName);
             logFileNameString = string.Concat(vmFileNameString, "log"); //making a .log to fill with same as what we Console.WriteLine();
-            vmFileNameString = string.Concat(vmFileNameString, "vm"); 
+            vmFileNameString = string.Concat(vmFileNameString, "xml");
+
+            Console.WriteLine("\n");
 
             using (var input = new StreamReader(file))
             {
@@ -90,23 +92,27 @@ namespace Project10
                 if (output != null && log != null)
                 {
                     Tokenizer.Token token = tokenizeThis.tokenize();
-                    while (token != null) 
+                    tokenList.Add(token);
+                    while (token != null)
                     {
-                        Console.WriteLine("back in main::: " + token.context);
-                        Console.WriteLine("token Type::: " + token.type);
                         token = tokenizeThis.tokenize();
                         tokenList.Add(token);
-                    } 
-
+                    }
                 }
+            }//end of using
 
-            }
-
-            foreach(Tokenizer.Token thisToken in tokenList)
+            foreach (Tokenizer.Token thisToken in tokenList)
             {
-                Console.WriteLine(thisToken);
-            }
+                if (thisToken != null)
+                {
+                    Console.WriteLine(thisToken.context + "   " + thisToken.type);
+                }
+            }//end of writing out tokens to screen
 
+
+            //send tokenList to XMLGenerator and output file
+            XMLGenerator.generateXML(tokenList, output);
+   
         }
 
 
