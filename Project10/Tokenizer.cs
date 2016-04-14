@@ -127,6 +127,7 @@ namespace Project10
 
             if (CurrentLine == null)
             {
+                stringIndex = 0;
                 return null;
             }
             if (symbols.Contains(CurrentLine[stringIndex]))  //~~~~~~~~~~~~~~~~~~~~~~~~check for symbols
@@ -204,7 +205,7 @@ namespace Project10
                 int letterIndex = stringIndex;
                 foreach (char i in CurrentLine)
                 {
-                    if (CurrentLine.Length >= letterIndex && symbols.Contains(CurrentLine[letterIndex + 1]))
+                    if (CurrentLine.Length > letterIndex && symbols.Contains(CurrentLine[letterIndex + 1]))
                     {
                         //end of identifier was found
                         break;
@@ -262,6 +263,7 @@ namespace Project10
                 }
                 if (CurrentLine == null)
                 {
+                    stringIndex = 0;
                     break;
                 }
                 string pattern = @"\s+";
@@ -275,7 +277,7 @@ namespace Project10
                     result = Regex.Replace(CurrentLine, @"\s+", "");
                 }
 
-                if ((stringIndex + 1) < (currentLine_.Length - 1) && currentLine_[stringIndex] == '/' && currentLine_[stringIndex] == '/')
+                if ((stringIndex + 1) < (currentLine_.Length - 1) && currentLine_[stringIndex] == '/' && currentLine_[stringIndex] == '/') //takes out single-line comments
                 {
                     // Read in new line and keep checking
                     currentLine_ = input.ReadLine();
@@ -283,7 +285,7 @@ namespace Project10
                     keepChecking = true;
                 }
                 //check for /*....*/ multiple line comments
-                if ((stringIndex + 1) < (currentLine_.Length - 1) && currentLine_[stringIndex] == '/' && currentLine_[stringIndex + 1] == '*')
+                if ((stringIndex + 1) < (currentLine_.Length - 1) && currentLine_[stringIndex] == '/' && currentLine_[stringIndex + 1] == '*') //takes out multi-line comments
                 {
                     bool multiLineCommentFound = false;
                     while (multiLineCommentFound == false)
