@@ -138,9 +138,6 @@ namespace Project10
 
                 //tegans code ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-
-
                 if(CurrentLine == null) {
                 //If we've reached the end of the file, return NULL:
                 if(input.EndOfStream) {
@@ -249,8 +246,6 @@ namespace Project10
                 return tokenIdentifier;
             }
 
-
-
             // For now, just create a new token that contains the character at stringIndex
             throw new FormatException("Syntax error: " + currentLine_);
         }
@@ -281,14 +276,7 @@ namespace Project10
                 string pattern = "(?<!\")\\s+(?!\")";
                 string replacement = "";
                 Regex regex = new Regex(pattern);
-                
-
-                //string result = null;
-                //for (int i = 0; i < 200; i++)
-                //{
-                //    result = Regex.Replace(CurrentLine, @"\s+", "");
-                //}
-
+ 
                 if ((stringIndex + 1) < (currentLine_.Length - 1) && currentLine_[stringIndex] == '/' && currentLine_[stringIndex] == '/') //takes out single-line comments
                 {
                     // Read in new line and keep checking

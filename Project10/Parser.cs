@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace Project10
 {
@@ -10,6 +11,7 @@ namespace Project10
     {
         //global variables
         int listIndex = 0;
+        int tabLines = 0;
 
         public static void Parse(List<Tokenizer.Token> list)
         {
@@ -88,22 +90,35 @@ namespace Project10
 
         }
 
-        void expect(string expect, List<Tokenizer.Token> list)
+        bool expect(string expect, List<Tokenizer.Token> list)
         {
             if (expect == list[listIndex].context)
             {
-
+                return true;
+            }
+            else
+            {
+                Console.WriteLine("Was not passed in the expected : " + expect);
+                return false;
             }
         }
 
-        void WriteXML()
+        void WriteXML(string xmlString, StreamWriter outputFile)
         {
-
+            for (int i = 0; i < tabLines; i++)
+            {
+                outputFile.Write("\t");
+            }
+            outputFile.WriteLine("<"+ xmlString + ">");
         }
 
-        void WriteXMLTag()
+        void WriteXMLTag(Tokenizer.Token xmlTag, StreamWriter outputFile)
         {
-
+            for (int i = 0; i < tabLines; i++)
+            {
+                outputFile.Write("\t");
+            }
+            outputFile.WriteLine("<" + xmlTag.type + ">" + xmlTag.context + "</" + xmlTag.type + ">");
         }
     }//end of class
 }//end of namespace
