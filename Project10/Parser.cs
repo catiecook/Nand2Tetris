@@ -15,13 +15,14 @@ namespace Project10
 
         public class ClassEntry
         {
-            public ClassEntry()
+            public ClassEntry(string className)
             {
+                context = className;
                 exists = false;
                 classSymbols = new Dictionary<string,SymbolEntry>();
             }
 
-            public string context;
+            public readonly string context;
             public bool exists;
 
             public Dictionary<string,SymbolEntry> classSymbols;
@@ -40,11 +41,14 @@ namespace Project10
 
             }
 
-            public SymbolEntry() { exists = false; }
+            public SymbolEntry() { exists = false; args = null; }
 
             public string context;
             public Type type;
             public bool exists;
+
+            //For functions.
+            public Dictionary<string,SymbolEntry> args;
         }
 
         Dictionary<string,ClassEntry> SymbolTable;
@@ -53,11 +57,7 @@ namespace Project10
         {
             SymbolTable = new Dictionary<string,ClassEntry>();
             codeWriter = writer;
-            tabLines = 0;
         }
-
-        //global variables
-        int tabLines;
 
         private void HandleComment(TList list)
         {
@@ -76,17 +76,40 @@ namespace Project10
                 CompileClass(list);
                 Parse(list);
             }
+            else {//We've reached the end of the program, all classes parsed.
+
+                //Check if there are any nonexistant symbols:
+                foreach(var entry in SymbolTable.Values)
+                {
+                    if(!entry.exists) throw new FormatException("Error. Class \"" + entry.context + "\" was referenced but does not exist.");
+
+                    foreach(var sym in entry.classSymbols.Values)
+                    {
+                        if(!sym.exists) throw new FormatException("Error. Symbol \"" + sym.context + "\" in class \"" + entry.context + "\" was referenced but does not exist.");
+                    }
+                }
+            }
         }
 
         //functions
         void CompileClass(TList list)
         {
+            string s = expect(list,Tokenizer.Token.Type.identifier);
+
+            if(s == null) throw new FormatException("Syntax error: Expected class name.");
+
+            if(!SymbolTable.ContainsKey(s))
+                SymbolTable[s] = new ClassEntry(s);
+
+            SymbolTable[s].exists = true;
+            var localTable = SymbolTable[s].classSymbols;
+
             int res = expect(list,"{");
             if(res == 0) {
 
-                CompileClassVarDec(list);
-                CompileClassConstructorList(list);
-                CompileClassSubroutineList(list);
+                CompileClassVarDec(list,localTable);
+                CompileClassConstructorList(list,localTable);
+                CompileClassSubroutineList(list,localTable);
             }
             else throw new FormatException("Syntax error: Expected \"{\"");
 
@@ -94,18 +117,18 @@ namespace Project10
             if(res != 0) throw new FormatException("Syntax error: Expected \"}\"");
         }
 
-        void CompileClassVarDec(TList list)
+        void CompileClassVarDec(TList list,Dictionary<string,SymbolEntry> localTable)
         {
             int exp = expect(list,"static","field");
             switch(exp)
             {
             case 0:
-                CompileStatic(list);
-                CompileClassVarDec(list);
+                CompileStatic(list,localTable);
+                CompileClassVarDec(list,localTable);
                 break;
             case 1:
-                CompileField(list);
-                CompileClassVarDec(list);
+                CompileField(list,localTable);
+                CompileClassVarDec(list,localTable);
                 break;
             default:
                 break;
@@ -122,78 +145,110 @@ namespace Project10
 
         }
 
-        void CompileClassConstructorList(TList list)
+        void CompileClassConstructorList(TList list,Dictionary<string,SymbolEntry>localTable)
         {
             int exp = expect(list,"constructor");
             if(exp == 0) {
-                CompileConstructor(list);
-                CompileClassConstructorList(list);
+                CompileConstructor(list,localTable);
+                CompileClassConstructorList(list,localTable);
             }
         }
 
-        void CompileConstructor(TList list)
+        void CompileConstructor(TList list,Dictionary<string,SymbolEntry>localTable)
         {
 
         }
 
-        void CompileClassSubroutineList(TList list)
+        void CompileClassSubroutineList(TList list,Dictionary<string,SymbolEntry>localTable)
         {
             int exp = expect(list,"function","method");
             switch(exp)
             {
             case 0:
-                CompileFunction(list);
-                CompileClassSubroutineList(list);
+                CompileFunction(list,localTable);
+                CompileClassSubroutineList(list,localTable);
                 break;
             case 1:
-                CompileMethod(list);
-                CompileClassSubroutineList(list);
+                CompileMethod(list,localTable);
+                CompileClassSubroutineList(list,localTable);
                 break;
             default:
                 break;
             }
         }
 
-        void CompileMethod(TList list)
+        void CompileMethod(TList list,Dictionary<string,SymbolEntry>localTable)
         {
 
         }
 
-        void CompileFunction(TList list)
+        void CompileFunction(TList list,Dictionary<string,SymbolEntry>localTable)
         {
 
         }
 
-        void CompileParameterList(TList list)
+        void CompileParameterList(TList list,Dictionary<string,SymbolEntry>argumentList)
         {
-            CompileExpressionList(list);
-            int exp = expect(list,")");
-
-            if(exp != 0) throw new FormatException("Syntax error. Expected: \")\"");
-        }
-
-        void CompileVarDec(TList list,string className,Dictionary<string,SymbolEntry>localTable, bool top = true)
-        {
-            int exp = expect(list,"static","field");
+            int exp = expect(list,"int","char","string","array");
 
             switch(exp)
             {
             case 0:
-                CompileStatic(list,localTable);
-                CompileVarDec(list,className,localTable,false);
+                CompileArgument(list,"int",argumentList);
                 break;
             case 1:
-                CompileField(list,localTable);
-                CompileVarDec(list,className,localTable,false);
+                CompileArgument(list,"char",argumentList);
+                break;
+            case 2:
+                CompileArgument(list,"string",argumentList);
+                break;
+            case 3:
+                CompileArrayArgument(list,argumentList);
                 break;
             default:
-                if(top)
-                    codeWriter.writeVariableDeclarations(className,localTable);
+                //Assume passing custom class type.
+                string nme = expect(list,Tokenizer.Token.Type.identifier);
+                //If the symbol table indicates that class does not exist:
+                if(!SymbolTable.ContainsKey(nme))
+                {
+                    //Add the new class to the symbol table.
+                    SymbolTable[nme] = new ClassEntry(nme);
+                }
+                CompileArgument(list,nme,argumentList);
                 break;
+            }
+
+            exp = expect(list,")",",");
+
+            switch(exp)
+            {
+            case 0:
+                //end list
+                break;
+            case 1:
+                CompileParameterList(list,argumentList);
+                break;
+            default:
+                throw new FormatException("Syntax error. Expected: \")\" or \",\"");
             }
         }
 
-        void CompileStatements(TList list,Dictionary<string,SymbolEntry>symbolTable)
+        void CompileArgument(TList list,string type,Dictionary<string,SymbolEntry> argumentList)
+        {
+
+        }
+
+        void CompileArrayArgument(TList list,Dictionary<string,SymbolEntry> argumentList)
+        {
+
+        }
+
+        void CompileVarDec(TList list,Dictionary<string,SymbolEntry>scopeTable)
+        {
+            
+        }
+
+        void CompileStatements(TList list,Dictionary<string,SymbolEntry>scopeTable)
         {
 
         }
@@ -233,9 +288,9 @@ namespace Project10
 
         }
 
-        void CompileExpressionList(TList list)
+        void CompileExpressionList(TList list,Dictionary<string,SymbolEntry>scopeTable)
         {
-
+            
         }
 
         int expect(TList list,params string[] expect)
@@ -254,35 +309,35 @@ namespace Project10
             return -1;
         }
 
-        int expect(TList list,params Tokenizer.Token.Type[] expect)
+        string expect(TList list,Tokenizer.Token.Type expect)
         {
             var front = list.First();
 
-            for(int i = 0; i < expect.Length; ++i)
-                if(expect[i] == front.type) {
-                    list.rmFront();
-                    return i;
-                }
+            if(front.type == expect) {
 
-            return -1;
-        }
-
-        void WriteXML(string xmlString, StreamWriter outputFile)
-        {
-            for (int i = 0; i < tabLines; i++)
-            {
-                outputFile.Write("\t");
+                list.popFront();
+                return front.context;
             }
-            outputFile.WriteLine("<"+ xmlString + ">");
+            else return null;
         }
 
-        void WriteXMLTag(Tokenizer.Token xmlTag, StreamWriter outputFile)
-        {
-            for (int i = 0; i < tabLines; i++)
-            {
-                outputFile.Write("\t");
-            }
-            outputFile.WriteLine("<" + xmlTag.type + ">" + xmlTag.context + "</" + xmlTag.type + ">");
-        }
+        //TODO: Move these to an XMLWriter class
+        //void WriteXML(string xmlString, StreamWriter outputFile)
+        //{
+        //    for (int i = 0; i < tabLines; i++)
+        //    {
+        //        outputFile.Write("\t");
+        //    }
+        //    outputFile.WriteLine("<"+ xmlString + ">");
+        //}
+
+        //void WriteXMLTag(Tokenizer.Token xmlTag, StreamWriter outputFile)
+        //{
+        //    for (int i = 0; i < tabLines; i++)
+        //    {
+        //        outputFile.Write("\t");
+        //    }
+        //    outputFile.WriteLine("<" + xmlTag.type + ">" + xmlTag.context + "</" + xmlTag.type + ">");
+        //}
     }//end of class
 }//end of namespace
