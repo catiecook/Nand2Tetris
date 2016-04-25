@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Symbol = Project10.Tokenizer.Token;
+
+
 namespace Project10
 {
     public class SymbolTable
@@ -16,11 +19,11 @@ namespace Project10
         int fieldIndex = 0;
 
 
-        public static Dictionary<string, SymbolTableEntry> ClassSymbolTable = new Dictionary<string, SymbolTableEntry>();//for STATIC, FIELD
+        public static Dictionary<string, Symbol> ClassSymbolTable = new Dictionary<string, Symbol>();//for STATIC, FIELD
 
-        public static Dictionary<string, SymbolTableEntry> SubRoutineSymbolTable = new SymbolTalbe<string, SymbolTableEntry>();//for ARG, VAR
+        public static Dictionary<string, SymbolTableEntry> SubRoutineSymbolTable = new SymbolTable<string, SymbolTableEntry>();//for ARG, VAR
 
-        public static Dictionary<Symbol.KIND, int> indices = new Dictionary<Symbol.KIND, int>(); //new
+        public static Dictionary<Symbol.KIND, int> indices = new Dictionary<Symbol.KIND, int>(); 
 
 
         //no vectors in C# , List is better
@@ -60,23 +63,23 @@ namespace Project10
             else if (kind == Symbol.KIND.STATIC || kind == Symbol.KIND.FIELD)
             {
                 //insert the variables into a new symbol table accordingly
-                int index = indices.get(kind);
+                int index = indices[kind];
                 Symbol symbol = new Symbol(type, kind, index);
-                indices.put(kind, index + 1);
-                ClassSymbolTable.put(name, symbol);
+                indices[kind] = index + 1;
+                ClassSymbolTable[name] = symbol;
             }
         }
 
         //returns the # of variables of the given kind already in the current scope
         public int varCount(Symbol.KIND kind)
         {
-            return indices.get(kind);
+            return indices[kind];
         }
 
         //returns the index assigned to the named identifier
         public int indexOf(string key)
         {
-            Symbol symbol = lookUp(name);
+            Symbol symbol = lookUp(key);
 
             if (symbol != null) return symbol.getIndex();
 
@@ -109,13 +112,13 @@ namespace Project10
         //checks if the target symbol exists
         private Symbol lookUp(string name)
         {
-            if (ClassSymbolTable.get(name) != null)
+            if (ClassSymbolTable[name] != null)
             {
-                return ClassSymbolTable.get(name);
+                return ClassSymbolTable[name];
             }
-            else if (SubRoutineSymbolTable.get(name) != null)
+            else if (SubRoutineSymbolTable[name] != null)
             {
-                return SubRoutineSymbolTable.get(name);
+                return SubRoutineSymbolTable[name];
             }
             else
             {

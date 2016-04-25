@@ -250,16 +250,46 @@ namespace Project10
 
         void CompileStatements(TList list,Dictionary<string,SymbolEntry>scopeTable)
         {
+            var front = list.First();
+            switch (front.context)
+            {
+                case "let":
+                    CompileLet(list);
+                    break;
+                case "if":
+                    CompileIf(list);
+                    break;
+                case "while":
+                    CompileWhile(list);
+                    break;
+                case "do":
+                    CompileDo(list);
+                    break;
+                case "return":
+                    CompileReturn(list);
+                    break;
+                default:
+                    throw new FormatException("Syntax error. Expected: 'do', 'while', 'let', 'if', or 'return' statement");
+            }
+        }
+
+        void CompileSubroutineCall(TList list)
+        {
 
         }
 
         void CompileDo(TList list)
         {
-
+            expect(list, Tokenizer.Token.Type.keyword);
+            CompileSubroutineCall(list);
+            expect(list, Tokenizer.Token.Type.symbol);
         }
 
         void CompileLet(TList list)
         {
+            list.rmFront(); //remove "let"
+            expect(list, Tokenizer.Token.Type.identifier); //not completed
+
 
         }
 
