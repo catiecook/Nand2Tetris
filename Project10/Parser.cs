@@ -411,23 +411,7 @@ namespace Project10
             else return null;
         }
 
-        //TODO: Move these to an XMLWriter class
-        //void WriteXML(string xmlString, StreamWriter outputFile)
-        //{
-        //    for (int i = 0; i < tabLines; i++)
-        //    {
-        //        outputFile.Write("\t");
-        //    }
-        //    outputFile.WriteLine("<"+ xmlString + ">");
-        //}
 
-        //void WriteXMLTag(Tokenizer.Token xmlTag, StreamWriter outputFile)
-        //{
-        //    for (int i = 0; i < tabLines; i++)
-        //    {
-        //        outputFile.Write("\t");
-        //    }
-        //    outputFile.WriteLine("<" + xmlTag.type + ">" + xmlTag.context + "</" + xmlTag.type + ">");
-        //}
+
     }//end of class
 }//end of namespace

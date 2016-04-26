@@ -78,8 +78,10 @@ namespace Project10
             Console.WriteLine("Processing file: {0}", file);
             string vmFileNameString = new string(vmFileName);
             string logFileNameString = new string(vmFileName);
+            string xmlFileNameString = new string(vmFileName);
             logFileNameString = string.Concat(vmFileNameString, "log"); //making a .log to fill with same as what we Console.WriteLine();
-            vmFileNameString = string.Concat(vmFileNameString, "xml");
+            xmlFileNameString = string.Concat(vmFileNameString, "xml");
+            vmFileNameString = string.Concat(vmFileNameString, "vm");
 
             Console.WriteLine("\n");
 
@@ -100,23 +102,25 @@ namespace Project10
                 }
             }//end of using
 
-            foreach (Tokenizer.Token thisToken in tokenList)
-            {
-                if (thisToken != null)
-                {
-                    Console.WriteLine(thisToken.context + "   " + thisToken.type);
-                }
-            }//end of writing out tokens to screen
+            CodeEngine codeEngine = new CodeEngine(vmFileNameString);
+            Parser parser = new Parser(codeEngine);
+            parser.Parse(tokenList);
 
-            //send tokenList to XMLGenerator and output file
-            if(output == null)
-                using(var out2 = new StreamWriter(vmFileNameString))
-                    XMLGenerator.generateXML(tokenList,out2);
-            else XMLGenerator.generateXML(tokenList,output);
-   
+            //foreach (Tokenizer.Token thisToken in tokenList)
+            //{
+            //    if (thisToken != null)
+            //    {
+            //        Console.WriteLine(thisToken.context + "   " + thisToken.type);
+            //    }
+            //}//end of writing out tokens to screen
+
+            ////send tokenList to XMLGenerator and output file
+            //if(output == null)
+            //    using(var out2 = new StreamWriter(xmlFileNameString))
+            //        XMLGenerator.generateXML(tokenList,out2);
+            //else XMLGenerator.generateXML(tokenList,output);
+
         }
-
-
 
     }//end of class
 }//end of namespace
