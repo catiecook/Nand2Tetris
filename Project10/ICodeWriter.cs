@@ -11,8 +11,6 @@ namespace Project10
     {
         void writeComment(string comment);
 
-        void writeClassSymbolTable(string className,Dictionary<string,Parser.SymbolEntry> symbols);
-
         void writeArgDeclaration(string type,string name);
 
         //TODO: Write more 'write___' functions for different token situations that might need various arguments.

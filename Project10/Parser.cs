@@ -12,6 +12,7 @@ namespace Project10
     class Parser
     {
         ICodeWriter codeWriter;
+        private int tokenCount_;
 
         public class ClassEntry
         {
@@ -41,10 +42,28 @@ namespace Project10
 
             }
 
+            public enum SubType
+            {
+                INT,
+                CHAR,
+                STRING
+            }
+
             public SymbolEntry() { exists = false; args = null; }
+
+            public SymbolEntry(string context,Type type, SubType subType,Dictionary<string,SymbolEntry> args)
+            {
+                this.exists = true;
+                this.context = context;
+                this.type = type;
+                this.subType = subType;
+
+                this.args = args;
+            }
 
             public string context;
             public Type type;
+            public SubType subType;
             public bool exists;
 
             //For functions.
@@ -53,8 +72,14 @@ namespace Project10
 
         Dictionary<string,ClassEntry> SymbolTable;
 
+        public int TokenCount
+        {
+            get { return tokenCount_; }
+        }
+
         public Parser(ICodeWriter writer)
         {
+            tokenCount_ = 0;
             SymbolTable = new Dictionary<string,ClassEntry>();
             codeWriter = writer;
         }
@@ -88,6 +113,8 @@ namespace Project10
                         if(!sym.exists) throw new FormatException("Error. Symbol \"" + sym.context + "\" in class \"" + entry.context + "\" was referenced but does not exist.");
                     }
                 }
+
+
             }
         }
 
@@ -137,7 +164,39 @@ namespace Project10
 
         void CompileStatic(TList list, Dictionary<string,SymbolEntry> localTable)
         {
+            string exp = expect(list,Tokenizer.Token.Type.keyword);
 
+            //Keyword type
+            if(exp != null)
+            {
+                Action<SymbolEntry.SubType> staticType = ty => {
+
+                    string iden = expect(list,Tokenizer.Token.Type.identifier);
+                    if(iden == null) throw new FormatException("Syntax error. Expected identifier.");
+
+                    if(localTable.ContainsKey(iden)) throw new FormatException("Identifier already defined.");
+
+                    localTable[iden] = new SymbolEntry(iden,SymbolEntry.Type.STATIC,ty,null);
+                };
+
+                switch(exp)
+                {
+                case "int":
+                    
+                    break;
+                case "char":
+                    //TODO
+                    break;
+                case "string":
+                    //TODO
+                    break;
+                }
+            }
+            //Identifier for a class type
+            else
+            {
+
+            }
         }
 
         void CompileField(TList list, Dictionary<string,SymbolEntry> localTable)
@@ -287,7 +346,6 @@ namespace Project10
 
         void CompileLet(TList list)
         {
-            list.rmFront(); //remove "let"
             expect(list, Tokenizer.Token.Type.identifier); //not completed
 
 
@@ -333,6 +391,7 @@ namespace Project10
             for(int i = 0; i < expect.Length; ++i)
                 if(expect[i] == front.context) {
                     list.rmFront();//Expect removes the token upon success.
+                    ++tokenCount_;
                     return i;
                 }
 
@@ -345,7 +404,8 @@ namespace Project10
 
             if(front.type == expect) {
 
-                list.popFront();
+                list.rmFront();
+                ++tokenCount_;
                 return front.context;
             }
             else return null;
