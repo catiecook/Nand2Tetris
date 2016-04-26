@@ -1,6 +1,0 @@
-C:\Users\Tegan\Desktop\COLLEGE WORK\GitHub repo\newProject10\Project10\bin\Debug\Project10.exe.config
-C:\Users\Tegan\Desktop\COLLEGE WORK\GitHub repo\newProject10\Project10\bin\Debug\Project10.exe
-C:\Users\Tegan\Desktop\COLLEGE WORK\GitHub repo\newProject10\Project10\bin\Debug\Project10.pdb
-C:\Users\Tegan\Desktop\COLLEGE WORK\GitHub repo\newProject10\Project10\obj\Debug\Project10.csprojResolveAssemblyReference.cache
-C:\Users\Tegan\Desktop\COLLEGE WORK\GitHub repo\newProject10\Project10\obj\Debug\Project10.exe
-C:\Users\Tegan\Desktop\COLLEGE WORK\GitHub repo\newProject10\Project10\obj\Debug\Project10.pdb
