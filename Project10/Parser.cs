@@ -181,15 +181,10 @@ namespace Project10
 
                 switch(exp)
                 {
-                case "int":
-                    
-                    break;
-                case "char":
-                    //TODO
-                    break;
-                case "string":
-                    //TODO
-                    break;
+                case "int": staticType(SymbolEntry.SubType.INT); break;
+                case "char": staticType(SymbolEntry.SubType.CHAR); break;
+                case "string": staticType(SymbolEntry.SubType.STRING); break;
+                default: throw new FormatException("Syntax error: Expected type keyword.");
                 }
             }
             //Identifier for a class type

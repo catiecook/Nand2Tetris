@@ -11,14 +11,6 @@ namespace Project10
     {
         void writeComment(string comment);
 
-        void writeArgDeclaration(string type,string name);
-
         //TODO: Write more 'write___' functions for different token situations that might need various arguments.
-
-        void writePush(string push);
-
-        void writePop(string pop);
-
-
     }
 }
