@@ -11,6 +11,14 @@ namespace Project10
     {
         void writeComment(string comment);
 
+        void writeConstructorHead(string className,int numArgs);
+
+        void writeSubroutineHead(string className,string subName,int numArgs);
+
+        void writeSubroutineEnd();
+
+        
+
         //TODO: Write more 'write___' functions for different token situations that might need various arguments.
     }
 }

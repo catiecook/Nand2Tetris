@@ -46,15 +46,21 @@ namespace Project10
             {
                 INT,
                 CHAR,
-                STRING
+                STRING,
+                CLASS,
+                A_INT,
+                A_CHAR,
+                A_STRING,
+                A_CLASS
             }
 
             public SymbolEntry() { exists = false; args = null; }
 
-            public SymbolEntry(string context,Type type, SubType subType,Dictionary<string,SymbolEntry> args)
+            public SymbolEntry(string context,string subContext,Type type, SubType subType,Dictionary<string,SymbolEntry> args)
             {
                 this.exists = true;
                 this.context = context;
+                this.subContext = subContext;
                 this.type = type;
                 this.subType = subType;
 
@@ -62,6 +68,7 @@ namespace Project10
             }
 
             public string context;
+            public string subContext;
             public Type type;
             public SubType subType;
             public bool exists;
@@ -118,7 +125,6 @@ namespace Project10
             }
         }
 
-        //functions
         void CompileClass(TList list)
         {
             string s = expect(list,Tokenizer.Token.Type.identifier);
@@ -135,8 +141,8 @@ namespace Project10
             if(res == 0) {
 
                 CompileClassVarDec(list,localTable);
-                CompileClassConstructorList(list,localTable);
-                CompileClassSubroutineList(list,localTable);
+                CompileClassConstructorList(list,localTable,s);
+                CompileClassSubroutineList(list,localTable,s);
             }
             else throw new FormatException("Syntax error: Expected \"{\"");
 
@@ -150,11 +156,11 @@ namespace Project10
             switch(exp)
             {
             case 0:
-                CompileStatic(list,localTable);
+                CompileMemberVariable(list,localTable,SymbolEntry.Type.STATIC);
                 CompileClassVarDec(list,localTable);
                 break;
             case 1:
-                CompileField(list,localTable);
+                CompileMemberVariable(list,localTable,SymbolEntry.Type.FIELD);
                 CompileClassVarDec(list,localTable);
                 break;
             default:
@@ -162,113 +168,198 @@ namespace Project10
             }
         }
 
-        void CompileStatic(TList list, Dictionary<string,SymbolEntry> localTable)
+        void CompileMemberVariable(TList list, Dictionary<string,SymbolEntry> localTable,SymbolEntry.Type supType)
         {
             string exp = expect(list,Tokenizer.Token.Type.keyword);
 
             //Keyword type
             if(exp != null)
             {
-                Action<SymbolEntry.SubType> staticType = ty => {
-
-                    string iden = expect(list,Tokenizer.Token.Type.identifier);
-                    if(iden == null) throw new FormatException("Syntax error. Expected identifier.");
-
-                    if(localTable.ContainsKey(iden)) throw new FormatException("Identifier already defined.");
-
-                    localTable[iden] = new SymbolEntry(iden,SymbolEntry.Type.STATIC,ty,null);
-                };
-
                 switch(exp)
                 {
-                case "int": staticType(SymbolEntry.SubType.INT); break;
-                case "char": staticType(SymbolEntry.SubType.CHAR); break;
-                case "string": staticType(SymbolEntry.SubType.STRING); break;
+                case "int": CompileIdentifier(list,localTable,supType,SymbolEntry.SubType.INT,null); break;
+                case "char": CompileIdentifier(list,localTable,supType,SymbolEntry.SubType.CHAR,null); break;
+                case "string": CompileIdentifier(list,localTable,supType,SymbolEntry.SubType.STRING,null); break;
                 default: throw new FormatException("Syntax error: Expected type keyword.");
                 }
             }
             //Identifier for a class type
             else
             {
+                string iden = expect(list,Tokenizer.Token.Type.identifier);
 
+                if(iden == null) throw new FormatException("Syntax error. Expected type.");
+
+                if(!SymbolTable.ContainsKey(iden)) SymbolTable[iden] = new ClassEntry(iden);
+
+                CompileIdentifier(list,localTable,supType,SymbolEntry.SubType.CLASS,iden);
             }
         }
 
-        void CompileField(TList list, Dictionary<string,SymbolEntry> localTable)
-        {
-
-        }
-
-        void CompileClassConstructorList(TList list,Dictionary<string,SymbolEntry>localTable)
+        void CompileClassConstructorList(TList list,Dictionary<string,SymbolEntry>localTable, string name)
         {
             int exp = expect(list,"constructor");
             if(exp == 0) {
-                CompileConstructor(list,localTable);
-                CompileClassConstructorList(list,localTable);
+                CompileConstructor(list,localTable,name);
+                CompileClassConstructorList(list,localTable,name);
             }
         }
 
-        void CompileConstructor(TList list,Dictionary<string,SymbolEntry>localTable)
+        void CompileConstructor(TList list,Dictionary<string,SymbolEntry>localTable,string name)
         {
+            string nm = expect(list,Tokenizer.Token.Type.identifier);
+            if(nm != name) throw new FormatException("Error. Constructor in class must share class name.");
 
+            Dictionary<string,SymbolEntry> argTable = new Dictionary<string,SymbolEntry>();
+            CompileParameterList(list,argTable);
+
+            codeWriter.writeConstructorHead(name,argTable.Count());
+
+            CompileSubroutineBody(list,localTable,argTable);
+
+            codeWriter.writeSubroutineEnd();
         }
 
-        void CompileClassSubroutineList(TList list,Dictionary<string,SymbolEntry>localTable)
+        void CompileClassSubroutineList(TList list,Dictionary<string,SymbolEntry>localTable,string name)
         {
             int exp = expect(list,"function","method");
             switch(exp)
             {
             case 0:
-                CompileFunction(list,localTable);
-                CompileClassSubroutineList(list,localTable);
+                CompileSubroutine(list,localTable,name,SymbolEntry.Type.FUNCTION);
+                CompileClassSubroutineList(list,localTable,name);
                 break;
             case 1:
-                CompileMethod(list,localTable);
-                CompileClassSubroutineList(list,localTable);
+                CompileSubroutine(list,localTable,name,SymbolEntry.Type.METHOD);
+                CompileClassSubroutineList(list,localTable,name);
                 break;
             default:
                 break;
             }
         }
 
-        void CompileMethod(TList list,Dictionary<string,SymbolEntry>localTable)
+        void CompileSubroutine(TList list,Dictionary<string,SymbolEntry>localTable,string classname,SymbolEntry.Type supType)
         {
+            string exp = expect(list,Tokenizer.Token.Type.keyword);
 
+            Func<SymbolEntry.SubType,string,Tuple<string,Dictionary<string,SymbolEntry>>> CIden = (ST,S) => {
+
+                string nm = expect(list,Tokenizer.Token.Type.identifier);
+                if(nm == null) throw new FormatException("Syntax error: Expected identifier.");
+
+                return CompileIdentifier(list,localTable,supType,ST,S,true);
+            };
+
+            Tuple<string,Dictionary<string,SymbolEntry>> fInfo;
+
+            //Keyword type
+            if(exp != null)
+            {
+                switch(exp)
+                {
+                case "int":  fInfo = CIden(SymbolEntry.SubType.INT,null); break;
+                case "char": fInfo = CIden(SymbolEntry.SubType.CHAR,null); break;
+                case "string": fInfo = CIden(SymbolEntry.SubType.STRING,null); break;
+                default: throw new FormatException("Syntax error: Expected type keyword.");
+                }
+            }
+            //Identifier for a class type
+            else
+            {
+                string iden = expect(list,Tokenizer.Token.Type.identifier);
+
+                if(iden == null) throw new FormatException("Syntax error. Expected type.");
+
+                if(!SymbolTable.ContainsKey(iden)) SymbolTable[iden] = new ClassEntry(iden);
+
+                fInfo = CIden(SymbolEntry.SubType.CLASS,iden);
+            }
+
+            string fName = fInfo.Item1;
+            var fArgs = fInfo.Item2;
+
+            codeWriter.writeSubroutineHead(classname,fName,fArgs.Count());
+            CompileSubroutineBody(list,localTable,fArgs);
+            codeWriter.writeSubroutineEnd();
         }
 
-        void CompileFunction(TList list,Dictionary<string,SymbolEntry>localTable)
+        Tuple<string,Dictionary<string,SymbolEntry>> CompileIdentifier(TList list,Dictionary<string,SymbolEntry>localTable,SymbolEntry.Type supType,SymbolEntry.SubType ty,string s,bool fun = false)
         {
+            string iden = expect(list,Tokenizer.Token.Type.identifier);
+            if(iden == null) throw new FormatException("Syntax error. Expected identifier.");
 
+            if(localTable.ContainsKey(iden)) throw new FormatException("Identifier already defined.");
+
+            Dictionary<string,SymbolEntry> args = null;
+            Tuple<string,Dictionary<string,SymbolEntry>> fInfo = null;
+
+            if(fun)
+            {
+                args = new Dictionary<string,SymbolEntry>();
+                fInfo = new Tuple<string,Dictionary<string,SymbolEntry>>(iden,args);
+                CompileParameterList(list,args);
+            }
+
+            localTable[iden] = new SymbolEntry(iden,s,supType,ty,args);
+
+            return fInfo;
         }
 
         void CompileParameterList(TList list,Dictionary<string,SymbolEntry>argumentList)
         {
-            int exp = expect(list,"int","char","string","array");
+            int exp = expect(list,")");
+            if(exp == 0) return;//Empty parameter list.
+
+            exp = expect(list,"int","char","string","array");
+            string nme;
 
             switch(exp)
             {
             case 0:
-                CompileArgument(list,"int",argumentList);
+                CompileArgument(list,SymbolEntry.SubType.INT,null,argumentList);
                 break;
             case 1:
-                CompileArgument(list,"char",argumentList);
+                CompileArgument(list,SymbolEntry.SubType.CHAR,null,argumentList);
                 break;
             case 2:
-                CompileArgument(list,"string",argumentList);
+                CompileArgument(list,SymbolEntry.SubType.STRING,null,argumentList);
                 break;
             case 3:
-                CompileArrayArgument(list,argumentList);
+                exp = expect(list,"int","char","string");
+                switch(exp)
+                {
+                case 0:
+                    CompileArgument(list,SymbolEntry.SubType.A_INT,null,argumentList);
+                    break;
+                case 1:
+                    CompileArgument(list,SymbolEntry.SubType.A_CHAR,null,argumentList);
+                    break;
+                case 2:
+                    CompileArgument(list,SymbolEntry.SubType.A_STRING,null,argumentList);
+                    break;
+                default:
+                    //Assume passing custom class type.
+                    nme = expect(list,Tokenizer.Token.Type.identifier);
+                    //If the symbol table indicates that class does not exist:
+                    if(!SymbolTable.ContainsKey(nme))
+                    {
+                        //Add the new class to the symbol table.
+                        SymbolTable[nme] = new ClassEntry(nme);
+                    }
+                    CompileArgument(list,SymbolEntry.SubType.A_CLASS,nme,argumentList);
+                    break;
+                }
                 break;
             default:
                 //Assume passing custom class type.
-                string nme = expect(list,Tokenizer.Token.Type.identifier);
+                nme = expect(list,Tokenizer.Token.Type.identifier);
                 //If the symbol table indicates that class does not exist:
                 if(!SymbolTable.ContainsKey(nme))
                 {
                     //Add the new class to the symbol table.
                     SymbolTable[nme] = new ClassEntry(nme);
                 }
-                CompileArgument(list,nme,argumentList);
+                CompileArgument(list,SymbolEntry.SubType.CLASS,nme,argumentList);
                 break;
             }
 
@@ -287,12 +378,18 @@ namespace Project10
             }
         }
 
-        void CompileArgument(TList list,string type,Dictionary<string,SymbolEntry> argumentList)
+        void CompileArgument(TList list,SymbolEntry.SubType type,string subC,Dictionary<string,SymbolEntry> argumentList)
         {
+            string exp = expect(list,Tokenizer.Token.Type.identifier);
 
+            if(exp == null) throw new FormatException("Syntax error: Expected identifier.");
+
+            if(argumentList.ContainsKey(exp)) throw new FormatException("Error: Identical identifiers in argument list.");
+
+            argumentList[exp] = new SymbolEntry(exp,subC,SymbolEntry.Type.ARG,type,null);
         }
 
-        void CompileArrayArgument(TList list,Dictionary<string,SymbolEntry> argumentList)
+        void CompileSubroutineBody(TList list,Dictionary<string,SymbolEntry>localTable,Dictionary<string,SymbolEntry>argumentTable)
         {
 
         }
