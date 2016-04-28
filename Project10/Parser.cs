@@ -7,6 +7,8 @@ using System.IO;
 
 using TList = System.Collections.Generic.List<Project10.Tokenizer.Token>;
 
+using TTable = System.Collections.Generic.Dictionary<string,Project10.Parser.SymbolEntry>;
+
 namespace Project10
 {
     class Parser
@@ -20,17 +22,26 @@ namespace Project10
             {
                 context = className;
                 exists = false;
-                classSymbols = new Dictionary<string,SymbolEntry>();
+                classSymbols = new TTable();
             }
 
             public readonly string context;
             public bool exists;
 
-            public Dictionary<string,SymbolEntry> classSymbols;
+            public TTable classSymbols;
         }
 
         public class SymbolEntry
         {
+            private static int globalStaticIndex = 0;
+            private static int nextStaticIndex
+            {
+                get
+                {
+                    return globalStaticIndex++;
+                }
+            }
+
             public enum Type
             {
                 ARG,
@@ -56,13 +67,15 @@ namespace Project10
 
             public SymbolEntry() { exists = false; args = null; }
 
-            public SymbolEntry(string context,string subContext,Type type, SubType subType,Dictionary<string,SymbolEntry> args)
+            public SymbolEntry(string context,string subContext,Type type, SubType subType,TTable args)
             {
                 this.exists = true;
                 this.context = context;
                 this.subContext = subContext;
                 this.type = type;
                 this.subType = subType;
+
+                if(this.type == Type.STATIC) this.index = nextStaticIndex;
 
                 this.args = args;
             }
@@ -72,9 +85,10 @@ namespace Project10
             public Type type;
             public SubType subType;
             public bool exists;
+            public int index;
 
             //For functions.
-            public Dictionary<string,SymbolEntry> args;
+            public TTable args;
         }
 
         Dictionary<string,ClassEntry> SymbolTable;
@@ -150,7 +164,7 @@ namespace Project10
             if(res != 0) throw new FormatException("Syntax error: Expected \"}\"");
         }
 
-        void CompileClassVarDec(TList list,Dictionary<string,SymbolEntry> localTable)
+        void CompileClassVarDec(TList list,TTable localTable)
         {
             int exp = expect(list,"static","field");
             switch(exp)
@@ -168,7 +182,7 @@ namespace Project10
             }
         }
 
-        void CompileMemberVariable(TList list, Dictionary<string,SymbolEntry> localTable,SymbolEntry.Type supType)
+        void CompileMemberVariable(TList list, TTable localTable,SymbolEntry.Type supType)
         {
             string exp = expect(list,Tokenizer.Token.Type.keyword);
 
@@ -196,7 +210,7 @@ namespace Project10
             }
         }
 
-        void CompileClassConstructorList(TList list,Dictionary<string,SymbolEntry>localTable, string name)
+        void CompileClassConstructorList(TList list,TTable localTable, string name)
         {
             int exp = expect(list,"constructor");
             if(exp == 0) {
@@ -205,12 +219,12 @@ namespace Project10
             }
         }
 
-        void CompileConstructor(TList list,Dictionary<string,SymbolEntry>localTable,string name)
+        void CompileConstructor(TList list,TTable localTable,string name)
         {
             string nm = expect(list,Tokenizer.Token.Type.identifier);
             if(nm != name) throw new FormatException("Error. Constructor in class must share class name.");
 
-            Dictionary<string,SymbolEntry> argTable = new Dictionary<string,SymbolEntry>();
+            TTable argTable = new TTable();
             CompileParameterList(list,argTable);
 
             codeWriter.writeConstructorHead(name,argTable.Count());
@@ -220,7 +234,7 @@ namespace Project10
             codeWriter.writeSubroutineEnd();
         }
 
-        void CompileClassSubroutineList(TList list,Dictionary<string,SymbolEntry>localTable,string name)
+        void CompileClassSubroutineList(TList list,TTable localTable,string name)
         {
             int exp = expect(list,"function","method");
             switch(exp)
@@ -238,11 +252,11 @@ namespace Project10
             }
         }
 
-        void CompileSubroutine(TList list,Dictionary<string,SymbolEntry>localTable,string classname,SymbolEntry.Type supType)
+        void CompileSubroutine(TList list,TTable localTable,string classname,SymbolEntry.Type supType)
         {
             string exp = expect(list,Tokenizer.Token.Type.keyword);
 
-            Func<SymbolEntry.SubType,string,Tuple<string,Dictionary<string,SymbolEntry>>> CIden = (ST,S) => {
+            Func<SymbolEntry.SubType,string,Tuple<string,TTable>> CIden = (ST,S) => {
 
                 string nm = expect(list,Tokenizer.Token.Type.identifier);
                 if(nm == null) throw new FormatException("Syntax error: Expected identifier.");
@@ -250,7 +264,7 @@ namespace Project10
                 return CompileIdentifier(list,localTable,supType,ST,S,true);
             };
 
-            Tuple<string,Dictionary<string,SymbolEntry>> fInfo;
+            Tuple<string,TTable> fInfo;
 
             //Keyword type
             if(exp != null)
@@ -283,7 +297,7 @@ namespace Project10
             codeWriter.writeSubroutineEnd();
         }
 
-        Tuple<string,Dictionary<string,SymbolEntry>> CompileIdentifier(TList list,Dictionary<string,SymbolEntry>localTable,SymbolEntry.Type supType,SymbolEntry.SubType ty,string s,bool fun = false)
+        Tuple<string,TTable> CompileIdentifier(TList list,TTable localTable,SymbolEntry.Type supType,SymbolEntry.SubType ty,string s,bool fun = false)
         {
             string iden = expect(list,Tokenizer.Token.Type.identifier);
             if(iden == null) throw new FormatException("Syntax error. Expected identifier.");
@@ -296,7 +310,7 @@ namespace Project10
             if(fun)
             {
                 args = new Dictionary<string,SymbolEntry>();
-                fInfo = new Tuple<string,Dictionary<string,SymbolEntry>>(iden,args);
+                fInfo = new Tuple<string,TTable>(iden,args);
                 CompileParameterList(list,args);
             }
 
@@ -305,7 +319,7 @@ namespace Project10
             return fInfo;
         }
 
-        void CompileParameterList(TList list,Dictionary<string,SymbolEntry>argumentList)
+        void CompileParameterList(TList list,TTable argumentList)
         {
             int exp = expect(list,")");
             if(exp == 0) return;//Empty parameter list.
@@ -378,7 +392,7 @@ namespace Project10
             }
         }
 
-        void CompileArgument(TList list,SymbolEntry.SubType type,string subC,Dictionary<string,SymbolEntry> argumentList)
+        void CompileArgument(TList list,SymbolEntry.SubType type,string subC,TTable argumentList)
         {
             string exp = expect(list,Tokenizer.Token.Type.identifier);
 
@@ -389,17 +403,55 @@ namespace Project10
             argumentList[exp] = new SymbolEntry(exp,subC,SymbolEntry.Type.ARG,type,null);
         }
 
-        void CompileSubroutineBody(TList list,Dictionary<string,SymbolEntry>localTable,Dictionary<string,SymbolEntry>argumentTable)
+        void CompileSubroutineBody(TList list,Dictionary<string,SymbolEntry>localTable,TTable argumentTable)
         {
+            TTable scopeTable = new TTable();
+
+            CompileVarDecList(list,scopeTable);
+            CompileStatementList(list,localTable,argumentTable,scopeTable);
 
         }
 
-        void CompileVarDec(TList list,Dictionary<string,SymbolEntry>scopeTable)
+        void CompileVarDecList(TList list,TTable scopeTable)
         {
-            
+            int exp = expect(list,"var");
+
+            if(exp == 0)
+            {
+                CompileVarDec(list,scopeTable);
+                CompileVarDecList(list,scopeTable);
+            }
         }
 
-        void CompileStatements(TList list,Dictionary<string,SymbolEntry>scopeTable)
+        void CompileVarDec(TList list,TTable scopeTable)
+        {
+            string exp = expect(list,Tokenizer.Token.Type.keyword);
+
+            //Keyword type
+            if(exp != null)
+            {
+                switch(exp)
+                {
+                case "int": CompileIdentifier(list,scopeTable,SymbolEntry.Type.VAR,SymbolEntry.SubType.INT,null); break;
+                case "char": CompileIdentifier(list,scopeTable,SymbolEntry.Type.VAR,SymbolEntry.SubType.CHAR,null); break;
+                case "string": CompileIdentifier(list,scopeTable,SymbolEntry.Type.VAR,SymbolEntry.SubType.STRING,null); break;
+                default: throw new FormatException("Syntax error: Expected type keyword.");
+                }
+            }
+            //Identifier for a class type
+            else
+            {
+                string iden = expect(list,Tokenizer.Token.Type.identifier);
+
+                if(iden == null) throw new FormatException("Syntax error. Expected type.");
+
+                if(!SymbolTable.ContainsKey(iden)) SymbolTable[iden] = new ClassEntry(iden);
+
+                CompileIdentifier(list,scopeTable,SymbolEntry.Type.VAR,SymbolEntry.SubType.CLASS,iden);
+            }
+        }
+
+        void CompileStatementList(TList list,TTable localTable,TTable argumentTable,TTable scopeTable)
         {
             var front = list.First();
             switch (front.context)
