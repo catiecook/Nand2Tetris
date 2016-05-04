@@ -407,7 +407,7 @@ namespace Project10
                 else if (token.tokenType() == Tokenizer.STRING_CONST)
                 {
                     // Need to create a string object here
-                    String strLiteral = token.stringVal();
+                    string strLiteral = token.stringVal();
                     // push strLiteral.length()
                     writer.writePush("constant", strLiteral.Length());
 
