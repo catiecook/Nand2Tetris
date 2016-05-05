@@ -456,23 +456,28 @@ namespace Project10
             var front = list.First();
             switch (front.context)
             {
-                case "let":
-                    CompileLet(list);
-                    break;
-                case "if":
-                    CompileIf(list);
-                    break;
-                case "while":
-                    CompileWhile(list);
-                    break;
-                case "do":
-                    CompileDo(list);
-                    break;
-                case "return":
-                    CompileReturn(list);
-                    break;
-                default:
-                    throw new FormatException("Syntax error. Expected: 'do', 'while', 'let', 'if', or 'return' statement");
+            case "let":
+                CompileLet(list,localTable,argumentTable,scopeTable);
+                CompileStatementList(list,localTable,argumentTable,scopeTable);
+                break;
+            case "if":
+                CompileIf(list);
+                CompileStatementList(list,localTable,argumentTable,scopeTable);
+            break;
+            case "while":
+                CompileWhile(list);
+                CompileStatementList(list,localTable,argumentTable,scopeTable);
+            break;
+            case "do":
+                CompileDo(list);
+                CompileStatementList(list,localTable,argumentTable,scopeTable);
+            break;
+            case "return":
+                CompileReturn(list);
+                CompileStatementList(list,localTable,argumentTable,scopeTable);
+                break;
+            default:
+                break;
             }
         }
 
@@ -481,16 +486,20 @@ namespace Project10
 
         }
 
-        void CompileDo(TList list)
+        void CompileDo(TList list,TTable localTable,TTable argumentTable,TTable scopeTable)
         {
             expect(list, Tokenizer.Token.Type.keyword);
             CompileSubroutineCall(list);
             expect(list, Tokenizer.Token.Type.symbol);
         }
 
-        void CompileLet(TList list)
+        void CompileLet(TList list,TTable localTable,TTable argumentTable,TTable scopeTable)
         {
-            expect(list, Tokenizer.Token.Type.identifier); //not completed
+            string varName = expect(list, Tokenizer.Token.Type.identifier);
+
+            Action<TTable,string> setVar = (t,s) => {
+
+            };
 
 
         }
